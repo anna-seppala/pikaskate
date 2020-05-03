@@ -1,0 +1,12 @@
+All credits to the person who actually made the game.
+
+I only found the olf .jar file, and couldn't make it run. That's why I decided
+to decompile it and bring it back together.
+
+The images referred to in the original file were gone so I had to recreate them
+somehow. Luckily there is a video on youtube of the gameplay, so I copied all
+the images from the video (that's why the quality is so marvellous), and used
+the copies to make my version.
+
+Also, the original .jar was an java applet, a technology that's been deprecated
+since 2017, so I converted the game to a full java binary.
