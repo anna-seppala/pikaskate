@@ -10,3 +10,5 @@ the copies to make my version.
 
 Also, the original .jar was an java applet, a technology that's been deprecated
 since 2017, so I converted the game to a full java binary.
+
+Deprecated java.awt events? Replace!
