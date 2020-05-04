@@ -3,6 +3,7 @@ package org.pokemon.app;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 public class ScoreBoard extends Canvas {
   int value;
@@ -14,16 +15,20 @@ public class ScoreBoard extends Canvas {
     this.label = paramString;
   }
   
-  public void paint(Graphics paramGraphics) {
-    paramGraphics.setColor(Color.white);
-    paramGraphics.drawString(" " + this.label + this.value, 4, 18);
+  public void paint(Graphics g) {
+      super.paint(g);
+      Graphics2D g2d = (Graphics2D) g;
+      
+    g2d.setColor(Color.white);
+    g2d.drawString(" " + this.label + this.value, 4, 18);
   }
   
   public void setNum(int paramInt) {
     this.value = paramInt;
-    Graphics graphics = getGraphics();
-    graphics.clearRect(0, 0, (size()).width, (size()).height);
-    paint(graphics);
+    Graphics2D g2d = (Graphics2D) getGraphics();
+    g2d.clearRect(0, 0, (size()).width, (size()).height);
+    //super.paint(g) //????
+    paint(g2d);
   }
 }
 

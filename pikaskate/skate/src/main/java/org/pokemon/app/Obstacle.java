@@ -2,6 +2,7 @@ package org.pokemon.app;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Polygon;
 
 public class Obstacle {
@@ -83,29 +84,30 @@ public class Obstacle {
     this.polyY1[paramInt1] = this.polyY[paramInt2];
   }
   
-  public void fill(Graphics paramGraphics) {
-    paramGraphics.setColor(c0);
-    paramGraphics.fillPolygon(this.polyX, this.polyY, 11);
+  public void fill(Graphics g) {
+      Graphics2D g2d = (Graphics2D) g;
+    g2d.setColor(c0);
+    g2d.fillPolygon(this.polyX, this.polyY, 11);
     c(0, 0);
     c(1, 1);
     c(2, 7);
     c(3, 11);
     c(4, 13);
     c(5, 10);
-    paramGraphics.setColor(c1);
-    paramGraphics.fillPolygon(this.polyX1, this.polyY1, 6);
+    g2d.setColor(c1);
+    g2d.fillPolygon(this.polyX1, this.polyY1, 6);
     c(0, 2);
     c(1, 3);
     c(2, 5);
     c(3, 6);
-    paramGraphics.setColor(c2);
-    paramGraphics.fillPolygon(this.polyX1, this.polyY1, 4);
+    g2d.setColor(c2);
+    g2d.fillPolygon(this.polyX1, this.polyY1, 4);
     c(0, 10);
     c(1, 13);
     c(2, 12);
     c(3, 9);
-    paramGraphics.setColor(c3);
-    paramGraphics.fillPolygon(this.polyX1, this.polyY1, 4);
+    g2d.setColor(c3);
+    g2d.fillPolygon(this.polyX1, this.polyY1, 4);
   }
   
   public boolean ut(int paramInt1, int paramInt2, int paramInt3, int paramInt4) {

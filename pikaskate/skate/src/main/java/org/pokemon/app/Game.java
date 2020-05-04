@@ -1,23 +1,23 @@
 package org.pokemon.app;
 
+import javax.swing.JPanel;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
 
-//import org.pokemon.app.Obstacle;
-//import org.pokemon.app.Pokemon;
-//import org.pokemon.app.Freeobj;
-//import org.pokemon.app.ScoreBoard;
-
-public class MainGame extends Canvas implements Runnable {
+public class Game extends Canvas implements Runnable {
   static int horizon = 26;
   boolean fff;
   static double[] si = new double[75];
@@ -61,23 +61,10 @@ public class MainGame extends Canvas implements Runnable {
   Thread Game;
   Image myImg0;
   Image img;
-  Image myImg;
-  Image myImg2;
-  Image myImg3;
-  Image myImg4;
-  Image myImg5;
-  Image myImg6;
-  Image myImg7;
-  Image myImg8;
-  Image myImg9;
-  Image myImg10;
-  Image myImg11;
-  Image myImg12;
-  Image myImg13;
-  Image myImg14;
+  Image[] myImgs;
   
-  Graphics gra;
-  Graphics ThisGra;
+  Graphics2D gra;
+  Graphics2D ThisGra;
   MediaTracker tracker;
   
   boolean isLoaded;
@@ -88,14 +75,14 @@ public class MainGame extends Canvas implements Runnable {
   boolean rFlag;
   boolean lFlag;
   boolean spcFlag;
-  Pokemon parent;
+  MainApp parent;
   boolean isFocus;
   boolean isFocus2;
   boolean scFlag;
   long prevTime;
   int damaged;
   
-  public MainGame(Pokemon paramPokemon) {
+  public Game(MainApp paramMain) {
     this.fff = true;
     this.grX = new int[4];
     this.grY = new int[4];
@@ -128,7 +115,7 @@ public class MainGame extends Canvas implements Runnable {
     this.isFocus = true;
     this.isFocus2 = true;
     this.scFlag = true;
-    this.parent = paramPokemon;
+    this.parent = paramMain;
   }
   
   public void init() {
@@ -137,7 +124,7 @@ public class MainGame extends Canvas implements Runnable {
     this.centerX = this.width / 2;
     this.centerY = this.height / 2;
     this.img = createImage(this.width, this.height);
-    this.gra = this.img.getGraphics();
+    this.gra = (Graphics2D) this.img.getGraphics();
     this.gra.setColor(new Color(48, 11, 142));
     this.gra.fillRect(0, 0, this.width, this.height);
     for (byte b = 0; b < 75; b++) {
@@ -149,35 +136,17 @@ public class MainGame extends Canvas implements Runnable {
     this.grX[3] = 0;
     this.grY[3] = this.height;
     this.mywidth2 = (int)(this.mywidth * 120.0D / (1.0D + Obstacle.T));
-    this.myImg = this.parent.getImage(this.parent.getCodeBase(), "egyenes.gif");
-    this.myImg2 = this.parent.getImage(this.parent.getCodeBase(), "egyug.gif");
-    this.myImg3 = this.parent.getImage(this.parent.getCodeBase(), "fbal1.gif");
-    this.myImg4 = this.parent.getImage(this.parent.getCodeBase(), "fbal2.gif");
-    this.myImg5 = this.parent.getImage(this.parent.getCodeBase(), "hatra.gif");
-    this.myImg6 = this.parent.getImage(this.parent.getCodeBase(), "heug.gif");
-    this.myImg7 = this.parent.getImage(this.parent.getCodeBase(), "fjobb1.gif");
-    this.myImg8 = this.parent.getImage(this.parent.getCodeBase(), "fjobb2.gif");
-    this.myImg9 = this.parent.getImage(this.parent.getCodeBase(), "jobb1.gif");
-    this.myImg10 = this.parent.getImage(this.parent.getCodeBase(), "jobb2.gif");
-    this.myImg11 = this.parent.getImage(this.parent.getCodeBase(), "bal1.gif");
-    this.myImg12 = this.parent.getImage(this.parent.getCodeBase(), "bal2.gif");
-    this.myImg13 = this.parent.getImage(this.parent.getCodeBase(), "cr1.gif");
-    this.myImg14 = this.parent.getImage(this.parent.getCodeBase(), "cr2.gif");
+    // open images and add to media tracker
+    myImgs = new Image[14];
     this.tracker = new MediaTracker(this.parent);
-    this.tracker.addImage(this.myImg, 0);
-    this.tracker.addImage(this.myImg2, 0);
-    this.tracker.addImage(this.myImg3, 0);
-    this.tracker.addImage(this.myImg4, 0);
-    this.tracker.addImage(this.myImg5, 0);
-    this.tracker.addImage(this.myImg6, 0);
-    this.tracker.addImage(this.myImg7, 0);
-    this.tracker.addImage(this.myImg8, 0);
-    this.tracker.addImage(this.myImg9, 0);
-    this.tracker.addImage(this.myImg10, 0);
-    this.tracker.addImage(this.myImg11, 0);
-    this.tracker.addImage(this.myImg12, 0);
-    this.tracker.addImage(this.myImg13, 0);
-    this.tracker.addImage(this.myImg14, 0);
+    for (int i=0; i<this.myImgs.length; i++) {
+	try {
+	    this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
+		    .getResource("img/img"+String.valueOf(1)+".png"));
+	    this.tracker.addImage(this.myImgs[i], 0);
+	} catch (IOException e) {
+	}
+    }
     this.tracker.checkAll(true);
   }
   
@@ -190,16 +159,18 @@ public class MainGame extends Canvas implements Runnable {
     this.gameMode = 0;
   }
   
-  public void paint(Graphics paramGraphics) {
+  public void paint(Graphics g) {
+	Graphics2D g2d = (Graphics2D) g;
     if (this.registMode) {
-      paramGraphics.setColor(Color.lightGray);
-      paramGraphics.fill3DRect(0, 0, this.width, this.height, true);
-      paramGraphics.setColor(Color.black);
-      paramGraphics.drawString("Wait a moment!!", this.centerX - 32, this.centerY + 8);
+	super.paint(g);
+      g2d.setColor(Color.lightGray);
+      g2d.fill3DRect(0, 0, this.width, this.height, true);
+      g2d.setColor(Color.black);
+      g2d.drawString("Wait a moment!!", this.centerX - 32, this.centerY + 8);
       return;
     } 
     if (this.img != null)
-      paramGraphics.drawImage(this.img, 0, 0, this); 
+      g2d.drawImage(this.img, 0, 0, this); 
   }
   
   public boolean mouseDown(Event paramEvent, int paramInt1, int paramInt2) {
@@ -341,17 +312,17 @@ public class MainGame extends Canvas implements Runnable {
     this.MCounter++;
     if (this.damaged < 40 && this.gameMode == 0) {
       int i;
-      this.myImg0 = this.myImg;
+      this.myImg0 = this.myImgs[0];
       switch (this.PCounter) {
         case 0:
           if (this.MCounter % 24 > 18) {
-            this.myImg0 = this.myImg2;
+            this.myImg0 = this.myImgs[1];
             this.PCounter = 1;
             this.ECounter = 0;
           } 
           break;
         case 1:
-          this.myImg0 = this.myImg2;
+          this.myImg0 = this.myImgs[1];
           i = (int)Math.abs(Math.random() * 5.0D);
           if (++this.ECounter % 12 > i) {
             this.WCounter = 0;
@@ -368,14 +339,14 @@ public class MainGame extends Canvas implements Runnable {
           this.PCounter = 0;
           break;
         case 2:
-          this.myImg0 = this.myImg3;
+          this.myImg0 = this.myImgs[2];
           if (++this.WCounter > 2) {
             this.PCounter = (this.mode == 0) ? 3 : 0;
             this.WCounter = 0;
           } 
           break;
         case 3:
-          this.myImg0 = this.myImg4;
+          this.myImg0 = this.myImgs[3];
           if (++this.WCounter >= 2) {
             this.PCounter = (this.mode == 0) ? 4 : 2;
             this.ECounter = 0;
@@ -383,24 +354,24 @@ public class MainGame extends Canvas implements Runnable {
           } 
           break;
         case 4:
-          this.myImg0 = this.myImg5;
+          this.myImg0 = this.myImgs[4];
           if (this.ECounter++ > 4)
             this.PCounter = (this.mode == 0) ? 5 : 3; 
           break;
         case 5:
-          this.myImg0 = this.myImg6;
+          this.myImg0 = this.myImgs[5];
           this.PCounter = (this.mode == 0) ? 6 : 4;
           this.WCounter = 0;
           break;
         case 6:
-          this.myImg0 = this.myImg7;
+          this.myImg0 = this.myImgs[6];
           if (++this.WCounter >= 2) {
             this.PCounter = (this.mode == 0) ? 7 : 5;
             this.WCounter = 0;
           } 
           break;
         case 7:
-          this.myImg0 = this.myImg8;
+          this.myImg0 = this.myImgs[7];
           if (++this.WCounter > 2) {
             this.PCounter = (this.mode == 0) ? 0 : 6;
             this.WCounter = 0;
@@ -411,20 +382,20 @@ public class MainGame extends Canvas implements Runnable {
         this.yy = _h_ - 10 + this.score / 20; 
       if (this.isLoaded) {
         if (this.vx > 0.2D)
-          this.myImg0 = this.myImg11; 
+          this.myImg0 = this.myImgs[10]; 
         if (this.vx > 0.4D)
-          this.myImg0 = this.myImg12; 
+          this.myImg0 = this.myImgs[11]; 
         if (this.vx < -0.2D)
-          this.myImg0 = this.myImg9; 
+          this.myImg0 = this.myImgs[8]; 
         if (this.vx < -0.4D)
-          this.myImg0 = this.myImg10; 
+          this.myImg0 = this.myImgs[9]; 
         if (this.damaged != 0)
-          this.myImg0 = this.myImg13; 
+          this.myImg0 = this.myImgs[12]; 
         if (this.damaged == 0) {
           this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy, this);
         } else {
           if (this.damaged > 4)
-            this.myImg0 = this.myImg14; 
+            this.myImg0 = this.myImgs[13]; 
           this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy + 3 * this.damaged + 8, this);
         } 
       } else {
@@ -612,7 +583,7 @@ public class MainGame extends Canvas implements Runnable {
   void putExtra() {}
   
   public void run() {
-    this.ThisGra = getGraphics();
+    this.ThisGra = (Graphics2D) getGraphics();
     System.gc();
     if (this.gameMode > 0) {
       demo();
@@ -641,7 +612,7 @@ public class MainGame extends Canvas implements Runnable {
       this.hiscore = this.score_;
       if (this.parent.userid != null && !this.parent.userid.equals("guest"))
         try {
-          URL uRL = new URL(this.parent.getParameter("serverName") + "/applets/hiscore/hs_main.htmp?name=" + URLEncoder.encode(this.parent.userid) + "&high=" + this.hiscore + "&sorMax=" + '\n' + "&userfile=" + "pokemon");
+          URL uRL = new URL("/applets/hiscore/hs_main.htmp?name=" + URLEncoder.encode(this.parent.userid) + "&high=" + this.hiscore + "&sorMax=" + '\n' + "&userfile=" + "pokemon");
           URLConnection uRLConnection = uRL.openConnection();
           int i = 2000;
           byte[] arrayOfByte = new byte[i];

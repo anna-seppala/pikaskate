@@ -1,6 +1,7 @@
 package org.pokemon.app;
 
-import java.applet.Applet;
+import java.awt.event.*;
+import java.awt.Frame;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
@@ -8,32 +9,27 @@ import java.awt.FlowLayout;
 import java.awt.Label;
 import java.awt.Panel;
 
-public class Pokemon extends Applet implements Runnable {
-  MainGame game;
-  
+public class MainApp extends Frame implements WindowListener {
+  Game game;
   Label hiScoreLabel;
-  
   ScoreBoard scoreWin;
-  
   ScoreBoard scoreHigh;
-  
   static boolean isWindows;
-  
-  static boolean isChecked;
-  
+  static boolean isChecked = true;
   int lang;
-  
   String userid;
-  
   String[] contMsg = { "Push [C] key to start from this stage!!", " " };
-  
   String[] toStartMsg = { "To start, click here or hit the SPACE bar", " " };
-  
   String[] clickMsg = { " ", " " };
   
-  public void init() {
+  public MainApp () {
+    this.setLayout(null);
+    this.setSize(400, 400);
+    this.setVisible(true);
+    this.addWindowListener(this);
+
     System.out.println("Jar version");
-    this.userid = getParameter("userid");
+    this.userid = "Sk8erBoy";
     setLayout(new BorderLayout());
     setForeground(Color.white);
     setBackground(new Color(80, 7, 37));
@@ -45,7 +41,7 @@ public class Pokemon extends Applet implements Runnable {
     panel1.setForeground(Color.white);
     panel1.add(this.scoreWin);
     add("North", panel1);
-    this.game = new MainGame(this);
+    this.game = new Game(this);
     this.game.resize(320, 200);
     add("Center", this.game);
     this.scoreHigh = new ScoreBoard("Your Hi-score: ");
@@ -58,9 +54,13 @@ public class Pokemon extends Applet implements Runnable {
     add("South", panel2);
     this.game.init();
     this.game.requestFocus();
-    (new Thread(this)).start();
+    this.start();
   }
-  
+ 
+    public static void main(String[] args) {
+	new MainApp();
+    }
+
   public void start() { if (isChecked)
       this.game.startGame(false);  }
   
@@ -86,6 +86,18 @@ public class Pokemon extends Applet implements Runnable {
     this.game.keyUp(paramEvent, paramInt);
     return true;
   }
+  public void windowClosing(WindowEvent e)
+  {
+    dispose();
+    System.exit(0);// normal exit of program
+  }
+  public void windowOpened(WindowEvent e){}// simply add definition if no code to be added.
+  public void windowIconified(WindowEvent e){}
+  public void windowClosed(WindowEvent e){}
+  public void windowDeiconified(WindowEvent e){}
+  public void windowActivated(WindowEvent e){}
+  public void windowDeactivated(WindowEvent e){}
+
 }
 
 
