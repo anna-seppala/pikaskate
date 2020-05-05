@@ -1,5 +1,6 @@
 package org.pokemon.app;
 
+import java.awt.event.*;
 import javax.swing.JPanel;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -17,8 +18,12 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.awt.geom.AffineTransform;
+import javax.swing.Action;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+import javax.swing.JComponent;
 
-public class Game extends Canvas implements Runnable {
+public class Game extends JPanel implements Runnable{
   static int horizon = 26;
   boolean fff;
   static double[] si = new double[75];
@@ -73,9 +78,11 @@ public class Game extends Canvas implements Runnable {
   int[] clearScore; // array showing which number of points starts new level
   Color[] bgColors; //colour of background (changes by level)
   int[] maxcounts;
-  boolean rFlag;
-  boolean lFlag;
-  boolean spcFlag;
+  boolean rFlag; // whether palyer pressed right arrow
+  boolean lFlag; // whether palyer pressed left arrow
+  boolean spcFlag; // whether palyer pressed SPACE	
+  private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
+
   MainApp parent;
   boolean isFocus;
   boolean isFocus2;
@@ -83,9 +90,10 @@ public class Game extends Canvas implements Runnable {
   long prevTime;
   int damaged;
   
+  // constructor
   public Game(MainApp paramMain) {
     //set container size and find center point
-    this.width = 420;
+    this.width = 480;
     this.height = 300;
     this.centerX = this.width / 2;
     this.centerY = this.height / 2;
@@ -95,7 +103,7 @@ public class Game extends Canvas implements Runnable {
     this.grY = new int[4];
     this.yy = _h_;
     this.obstacles = new Freeobj(64); // create obstacles
-    this.mywidth = 0.403D;
+    this.mywidth = 0.04D;//0.403D;
     this.startFlag = false;
     this.isContinue = false;
     this.registMode = false;
@@ -123,6 +131,7 @@ public class Game extends Canvas implements Runnable {
     this.isFocus2 = true;
     this.scFlag = true;
     this.parent = paramMain;
+    setKeyBindings();
   }
   
   public void init() {
@@ -139,14 +148,14 @@ public class Game extends Canvas implements Runnable {
     this.grY[2] = this.height;
     this.grX[3] = 0;
     this.grY[3] = this.height;
-    this.mywidth2 = (int)(this.mywidth * 120.0D / (1.0D + Obstacle.T));
+    this.mywidth2 = (int)(this.mywidth * 130.0D / (1.0D + Obstacle.T));//130.0D
     // open images and add to media tracker
     myImgs = new Image[14];
     this.tracker = new MediaTracker(this.parent);
     for (int i=0; i<this.myImgs.length; i++) {
 	try {
 	    this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
-		    .getResource("img/img"+String.valueOf(1)+".png"));
+		    .getResource("img/img"+String.valueOf(i+1)+".png" ));
 	    this.tracker.addImage(this.myImgs[i], 0);
 	} catch (IOException e) {
 	}
@@ -179,62 +188,124 @@ public class Game extends Canvas implements Runnable {
   }
  
 //-------------------------------- Events start:
-  public boolean mouseDown(Event paramEvent, int paramInt1, int paramInt2) {
-    if (paramEvent.modifiers == 4) {
-      this.rFlag = true;
-      this.lFlag = false;
-    } else if (paramEvent.modifiers == 0) {
-      this.rFlag = false;
-      this.lFlag = true;
-    } 
-    if (this.startFlag)
-      return false; 
-    if (!this.isFocus2) {
-      this.isFocus2 = true;
-      return false;
-    } 
-    this.isContinue = false;
-    startGame(true);
-    return false;
-  }
-  
-  public boolean mouseUp(Event paramEvent, int paramInt1, int paramInt2) {
-    this.rFlag = false;
-    this.lFlag = false;
-    return false;
-  }
-  
-  public boolean mouseMove(Event paramEvent, int paramInt1, int paramInt2) {
-    this.mouseX = paramInt1;
-    this.mouseY = paramInt2;
-    return true;
-  }
-  
+
+
+    private void setKeyBindings() { //WHEN_IN_FOCUSED_WINDOW
+	// space key events
+	this.getInputMap()
+	    .put(KeyStroke.getKeyStroke("SPACE"), "spacePressAction");
+	this.getActionMap()
+	    .put("spacePressAction", spacePressAction);
+	this.getInputMap()
+	    .put(KeyStroke.getKeyStroke("released SPACE"), "spaceReleaseAction");
+	this.getActionMap()
+	    .put("spaceReleaseAction", spaceReleaseAction);
+
+	// arrow key events
+	for (int i = 0; i < commands.length; i++) { 
+	    registerKeyboardAction(arrowPressAction, commands[i], KeyStroke
+		.getKeyStroke(commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    registerKeyboardAction(arrowReleaseAction, commands[i], KeyStroke
+		.getKeyStroke("released " + commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
+	}
+    }
+
+    // action to be performed when space is pressed
+    Action spacePressAction = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+	    spcFlag = true; // pressed space
+	    isContinue = false;
+	    if (!startFlag) {
+		startGame(true);
+	    }
+        }
+    };
+    // action for space is released
+    Action spaceReleaseAction = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+	    spcFlag = false; // released space
+        }
+    };
+
+    // listen to arrow press action and set right flags
+    private ActionListener arrowPressAction = new ActionListener()
+    {   
+        @Override
+        public void actionPerformed(ActionEvent ae)
+        {
+            String command = (String) ae.getActionCommand();
+            if (command.equals(commands[0])) { // s to go to ranking
+		if (!startFlag && hiscore != 0) {
+		    gotoRanking();
+		}
+	    }
+            else if (command.equals(commands[1])) { // c: start from best level
+		if (!startFlag) {
+		    isContinue = true;	
+		}
+	    }
+            else if (command.equals(commands[2])) {// move left
+		lFlag = true;
+		rFlag = false;
+	    }
+            else if (command.equals(commands[3])) {// move right
+		rFlag = true;
+		lFlag = false;
+	    }
+        }
+    };
+    
+    // set keypress flags to false when arrow key released
+    private ActionListener arrowReleaseAction = new ActionListener()
+    {   
+        @Override
+        public void actionPerformed(ActionEvent ae)
+        {
+	    rFlag = false;
+   	    lFlag = false;
+        }
+    };
+
+//  public boolean mouseDown(Event paramEvent, int paramInt1, int paramInt2) {
+//    if (paramEvent.modifiers == 4) {
+//      this.rFlag = true;
+//      this.lFlag = false;
+//    } else if (paramEvent.modifiers == 0) {
+//      this.rFlag = false;
+//      this.lFlag = true;
+//    } 
+//    if (this.startFlag)
+//      return false; 
+//    if (!this.isFocus2) {
+//      this.isFocus2 = true;
+//      return false;
+//    } 
+//    this.isContinue = false;
+//    startGame(true);
+//    return false;
+//  }
+//  
+//  public boolean mouseMove(Event paramEvent, int paramInt1, int paramInt2) {
+//    this.mouseX = paramInt1;
+//    this.mouseY = paramInt2;
+//    return true;
+//  }
+//  
   public boolean keyDown(Event paramEvent, int paramInt) {
     if (paramInt == 1007 || paramInt == 108)
-      this.rFlag = true; 
     if (paramInt == 1006 || paramInt == 106)
-      this.lFlag = true; 
+      this.lFlag = true; // going left
     if (paramInt == 97)
-      this.spcFlag = true; 
+      this.spcFlag = true; // pressed space
     if (!this.startFlag && (paramInt == 32 || paramInt == 99 || paramInt == 67)) {
       this.isContinue = false;
-      if (paramInt != 32)
+      if (paramInt != 32) // press 'c' to continue from current level
         this.isContinue = true; 
       startGame(true);
-    } 
+    }
+    // if in demo mode and 's' or '' pressed, go to ranking
     if (!this.startFlag && (paramInt == 115 || paramInt == 83) && this.hiscore != 0)
-      gotoRank(); 
-    return false;
-  }
-  
-  public boolean keyUp(Event paramEvent, int paramInt) {
-    if (paramInt == 1007 || paramInt == 108)
-      this.rFlag = false; 
-    if (paramInt == 1006 || paramInt == 106)
-      this.lFlag = false; 
-    if (paramInt == 97)
-      this.spcFlag = false; 
+      gotoRanking(); 
     return false;
   }
   
@@ -262,10 +333,11 @@ public class Game extends Canvas implements Runnable {
   }
  
   // wrapper to start game
-  public void startGame(boolean paramBoolean) {
-    if (this.startFlag)
-      return; 
-    if (paramBoolean) {
+  public void startGame(boolean playNow) {
+    if (this.startFlag) {
+	return; // don't start again if already started
+    }
+    if (playNow) { // playNow means we put player in game and count score
       if (this.Game != null) {
         this.Game.stop();
         this.Game = null;
@@ -274,20 +346,21 @@ public class Game extends Canvas implements Runnable {
       this.gameMode = 0;
       this.Game = new Thread(this);
       this.Game.start();
-      return;
-    } 
-    if (this.gameMode == 0) {
-      if (this.Game != null) {
-        this.Game.stop();
-        this.Game = null;
-      } 
-      this.gameMode = 1;
-      this.Game = new Thread(this);
-      this.Game.start();
+    } else {
+	// if playNow == false -> play demo instead of real game
+	if (this.gameMode == 0) {
+	    if (this.Game != null) {
+		this.Game.stop();
+		this.Game = null;
+	    } 
+	    this.gameMode = 1;
+	    this.Game = new Thread(this);
+	    this.Game.start();
+	}
     } 
   }
   
-  void gotoRank() {
+  void gotoRanking() {
     if (this.hiscore == 0)
       return; 
     stop();
@@ -508,7 +581,8 @@ public class Game extends Canvas implements Runnable {
         if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
 	    collision = true;
 	    //TODO make colour change show but not last (rotated obstacles)
-	    obstacle1.setCollided(collision);
+	    // Only change colour in play mode (not in demo)
+	    obstacle1.setCollided(collision && (this.gameMode == 0));
 	}
         if (obstacle1.prev != null)
           obstacle1.prev.next = obstacle1.next; 
@@ -621,10 +695,12 @@ public class Game extends Canvas implements Runnable {
     this.round = 0;
     this.score = 0;
     this.vx = 0.0D;
-    if (this.isContinue)
-      for (; this.hiscore >= this.clearScore[this.round]; this.round++); 
-    if (this.round > 0)
-      this.score = this.clearScore[this.round - 1] - 1000; 
+    if (this.isContinue) {
+	for (; this.hiscore >= this.clearScore[this.round]; this.round++); 
+    }
+    if (this.round > 0) {
+	this.score = this.clearScore[this.round - 1] - 1000; 
+    }
     this.maxcount = this.maxcounts[this.round];
     while (!moveObstacle()) { // until collision happens
 	prt();

@@ -24,10 +24,11 @@ public class MainApp extends JFrame implements WindowListener {
   String[] clickMsg = { " ", " " };
   
   public MainApp () {
-    this.setSize(400, 400);
+    this.setSize(520, 500);
     this.setVisible(true);
     this.addWindowListener(this);
 
+    //this.repaint();
     this.userid = "Sk8erB0i";
     this.setLayout(new BorderLayout());
     this.setForeground(Color.white);
@@ -40,6 +41,14 @@ public class MainApp extends JFrame implements WindowListener {
     panel1.setForeground(Color.white);
     panel1.add(this.scoreWin);
     this.add(panel1, BorderLayout.PAGE_START);
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new FlowLayout(0));
+    panel.setForeground(Color.white);
+    panel.add(new JLabel("  "));
+    this.add(panel, BorderLayout.LINE_START);
+
+
     this.game = new Game(this);
     this.add(this.game, BorderLayout.CENTER);
     this.scoreHigh = new ScoreBoard("Your high-score: ");
@@ -75,21 +84,21 @@ public class MainApp extends JFrame implements WindowListener {
     isChecked = true;
   }
   
-  public boolean action(Event paramEvent, Object paramObject) {
-    if (paramEvent.target instanceof java.awt.Button)
-      this.game.gotoRank(); 
-    return true;
-  }
-  
-  public boolean keyDown(Event paramEvent, int paramInt) {
-    this.game.keyDown(paramEvent, paramInt);
-    return true;
-  }
-  
-  public boolean keyUp(Event paramEvent, int paramInt) {
-    this.game.keyUp(paramEvent, paramInt);
-    return true;
-  }
+//  public boolean action(Event paramEvent, Object paramObject) {
+//    if (paramEvent.target instanceof java.awt.Button)
+//      this.game.gotoRank(); 
+//    return true;
+//  }
+//  
+//  public boolean keyDown(Event e, int paramInt) {
+//    this.game.keyDown(e, paramInt);
+//    return true;
+//  }
+//  
+//  public boolean keyUp(Event paramEvent, int paramInt) {
+//    this.game.keyUp(paramEvent, paramInt);
+//    return true;
+//  }
   public void windowClosing(WindowEvent e)
   {
     dispose();

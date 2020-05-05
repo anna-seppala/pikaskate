@@ -19,37 +19,37 @@ public class Obstacle {
   public Obstacle next;
   public Obstacle prev; 
   
-  void init(double paramDouble1, double paramDouble2) {
-    this.x[0] = paramDouble1 - 1.02D;
+  void init(double xPos, double zPos) {
+    this.x[0] = xPos - 1.02D;
     this.y[0] = 2.7800000000000002D;
-    this.x[1] = paramDouble1 - 1.16D;
+    this.x[1] = xPos - 1.16D;
     this.y[1] = -0.3800000000000001D;
-    this.x[2] = paramDouble1 - 1.3D;
+    this.x[2] = xPos - 1.3D;
     this.y[2] = this.y[1];
     this.x[3] = this.x[2];
     this.y[3] = -0.7D;
-    this.x[4] = paramDouble1;
+    this.x[4] = xPos;
     this.y[4] = -1.0000000000000002D;
-    this.x[5] = paramDouble1 + 1.3D;
+    this.x[5] = xPos + 1.3D;
     this.y[5] = this.y[3];
     this.x[6] = this.x[5];
     this.y[6] = this.y[1];
-    this.x[7] = paramDouble1 + 1.16D;
+    this.x[7] = xPos + 1.16D;
     this.y[7] = this.y[1];
-    this.x[8] = paramDouble1 + 1.02D;
+    this.x[8] = xPos + 1.02D;
     this.y[8] = this.y[0];
-    this.x[9] = paramDouble1 + 0.5D;
+    this.x[9] = xPos + 0.5D;
     this.y[9] = 2.92D;
-    this.x[10] = paramDouble1 - 0.5D;
+    this.x[10] = xPos - 0.5D;
     this.y[10] = this.y[9];
-    this.x[11] = paramDouble1 + 1.14D;
+    this.x[11] = xPos + 1.14D;
     this.y[11] = -0.040000000000000036D;
     this.x[12] = this.x[9];
     this.y[12] = this.y[12];
     this.x[13] = this.x[10];
     this.y[13] = this.y[12];
     for (int i = 0; i < lgt; i++)
-      this.z[i] = paramDouble2; 
+      this.z[i] = zPos; 
   }
   
   public void transform(double paramDouble1, double paramDouble2, int paramInt1, int paramInt2) {

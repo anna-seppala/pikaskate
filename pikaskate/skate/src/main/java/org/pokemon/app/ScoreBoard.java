@@ -19,7 +19,8 @@ public class ScoreBoard extends Canvas {
       super.paint(g);
       Graphics2D g2d = (Graphics2D) g;
       
-    g2d.setColor(Color.white);
+    g2d.setColor(Color.BLUE);
+
     g2d.drawString(" " + this.label + this.value, 4, 18);
   }
   
