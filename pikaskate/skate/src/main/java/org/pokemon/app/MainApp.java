@@ -1,17 +1,18 @@
 package org.pokemon.app;
 
 import java.awt.event.*;
-import java.awt.Frame;
+import javax.swing.JFrame;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Label;
-import java.awt.Panel;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JButton;
 
-public class MainApp extends Frame implements WindowListener {
+public class MainApp extends JFrame implements WindowListener {
   Game game;
-  Label hiScoreLabel;
   ScoreBoard scoreWin;
   ScoreBoard scoreHigh;
   static boolean isWindows;
@@ -23,35 +24,33 @@ public class MainApp extends Frame implements WindowListener {
   String[] clickMsg = { " ", " " };
   
   public MainApp () {
-    this.setLayout(null);
     this.setSize(400, 400);
     this.setVisible(true);
     this.addWindowListener(this);
 
-    System.out.println("Jar version");
-    this.userid = "Sk8erBoy";
-    setLayout(new BorderLayout());
-    setForeground(Color.white);
-    setBackground(new Color(80, 7, 37));
+    this.userid = "Sk8erB0i";
+    this.setLayout(new BorderLayout());
+    this.setForeground(Color.white);
+    this.setBackground(new Color(80, 7, 37));
     this.scoreWin = new ScoreBoard("Score: ");
-    this.scoreWin.resize(128, 28);
+    this.scoreWin.resize(150, 28);
     this.scoreWin.setForeground(Color.white);
-    Panel panel1 = new Panel();
+    JPanel panel1 = new JPanel();
     panel1.setLayout(new FlowLayout(0));
     panel1.setForeground(Color.white);
     panel1.add(this.scoreWin);
-    add("North", panel1);
+    this.add(panel1, BorderLayout.PAGE_START);
     this.game = new Game(this);
-    this.game.resize(320, 200);
-    add("Center", this.game);
-    this.scoreHigh = new ScoreBoard("Your Hi-score: ");
-    this.scoreHigh.resize(128, 28);
+    this.add(this.game, BorderLayout.CENTER);
+    this.scoreHigh = new ScoreBoard("Your high-score: ");
+    this.scoreHigh.resize(150, 28);
     this.scoreHigh.setForeground(Color.white);
-    Panel panel2 = new Panel();
+    JPanel panel2 = new JPanel();
     panel2.setLayout(new FlowLayout(0));
     panel2.setForeground(Color.white);
     panel2.add(this.scoreHigh);
-    add("South", panel2);
+    this.add(panel2, BorderLayout.PAGE_END);
+
     this.game.init();
     this.game.requestFocus();
     this.start();
@@ -61,10 +60,15 @@ public class MainApp extends Frame implements WindowListener {
 	new MainApp();
     }
 
-  public void start() { if (isChecked)
-      this.game.startGame(false);  }
+  public void start() {
+      if (isChecked) {
+	this.game.startGame(false); 
+      }
+  }
   
-  public void stop() { this.game.stop(); }
+  public void stop() {
+      this.game.stop();
+  }
   
   public void run() {
     this.game.startGame(false);

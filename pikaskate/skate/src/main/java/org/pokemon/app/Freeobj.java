@@ -3,8 +3,8 @@ package org.pokemon.app;
 public class Freeobj {
   Obstacle head;
   
-  public Freeobj(int paramInt) {
-    for (byte b = 0; b < paramInt; b++) {
+  public Freeobj(int numberObstacles) {
+    for (int i = 0; i < numberObstacles; i++) {
       Obstacle obstacle1 = new Obstacle();
       obstacle1.next = this.head;
       this.head = obstacle1;

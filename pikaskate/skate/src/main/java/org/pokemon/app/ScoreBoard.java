@@ -27,7 +27,7 @@ public class ScoreBoard extends Canvas {
     this.value = paramInt;
     Graphics2D g2d = (Graphics2D) getGraphics();
     g2d.clearRect(0, 0, (size()).width, (size()).height);
-    //super.paint(g) //????
+    //super.paint(g); //????
     paint(g2d);
   }
 }

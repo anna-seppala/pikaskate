@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.awt.geom.AffineTransform;
 
 public class Game extends Canvas implements Runnable {
   static int horizon = 26;
@@ -69,8 +70,8 @@ public class Game extends Canvas implements Runnable {
   
   boolean isLoaded;
   int round;
-  int[] clearScore;
-  Color[] bkcolors;
+  int[] clearScore; // array showing which number of points starts new level
+  Color[] bgColors; //colour of background (changes by level)
   int[] maxcounts;
   boolean rFlag;
   boolean lFlag;
@@ -83,11 +84,17 @@ public class Game extends Canvas implements Runnable {
   int damaged;
   
   public Game(MainApp paramMain) {
+    //set container size and find center point
+    this.width = 420;
+    this.height = 300;
+    this.centerX = this.width / 2;
+    this.centerY = this.height / 2;
+
     this.fff = true;
     this.grX = new int[4];
     this.grY = new int[4];
     this.yy = _h_;
-    this.obstacles = new Freeobj(64);
+    this.obstacles = new Freeobj(64); // create obstacles
     this.mywidth = 0.403D;
     this.startFlag = false;
     this.isContinue = false;
@@ -95,7 +102,7 @@ public class Game extends Canvas implements Runnable {
     this.isInPage = false;
     this.isLoaded = false;
     this.clearScore = new int[] { 8000, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
-    this.bkcolors = 
+    this.bgColors = 
       new Color[] { new Color(48, 11, 142), 
         new Color(48, 11, 160), 
         new Color(48, 11, 172), 
@@ -119,17 +126,14 @@ public class Game extends Canvas implements Runnable {
   }
   
   public void init() {
-    this.width = 320;
-    this.height = 200;
-    this.centerX = this.width / 2;
-    this.centerY = this.height / 2;
+
     this.img = createImage(this.width, this.height);
     this.gra = (Graphics2D) this.img.getGraphics();
     this.gra.setColor(new Color(48, 11, 142));
     this.gra.fillRect(0, 0, this.width, this.height);
-    for (byte b = 0; b < 75; b++) {
-      si[b] = Math.sin(3.14159D * b / 75.0D / 6.0D);
-      co[b] = Math.cos(3.14159D * b / 75.0D / 6.0D);
+    for (int i = 0; i < 75; i++) {
+      si[i] = Math.sin(3.14159D * i / 75.0D / 6.0D);
+      co[i] = Math.cos(3.14159D * i / 75.0D / 6.0D);
     } 
     this.grX[2] = this.width;
     this.grY[2] = this.height;
@@ -158,7 +162,8 @@ public class Game extends Canvas implements Runnable {
     this.registMode = false;
     this.gameMode = 0;
   }
-  
+ 
+  // paint methods overridden: For what?
   public void paint(Graphics g) {
 	Graphics2D g2d = (Graphics2D) g;
     if (this.registMode) {
@@ -172,7 +177,8 @@ public class Game extends Canvas implements Runnable {
     if (this.img != null)
       g2d.drawImage(this.img, 0, 0, this); 
   }
-  
+ 
+//-------------------------------- Events start:
   public boolean mouseDown(Event paramEvent, int paramInt1, int paramInt2) {
     if (paramEvent.modifiers == 4) {
       this.rFlag = true;
@@ -241,7 +247,10 @@ public class Game extends Canvas implements Runnable {
     this.isFocus = this.isFocus2 = false;
     return true;
   }
-  
+ 
+//-------------------------------- Events end
+
+  // delete all obstacles
   void clearObstacle() {
     Obstacle obstacle1 = this.Head;
     while (obstacle1 != null) {
@@ -251,7 +260,8 @@ public class Game extends Canvas implements Runnable {
     } 
     this.Head = null;
   }
-  
+ 
+  // wrapper to start game
   public void startGame(boolean paramBoolean) {
     if (this.startFlag)
       return; 
@@ -286,7 +296,8 @@ public class Game extends Canvas implements Runnable {
     this.registMode = true;
     repaint();
   }
-  
+ 
+  // draw text if hit dustbin
   void putbomb() {
     if (this.damaged > 40)
       return; 
@@ -301,8 +312,10 @@ public class Game extends Canvas implements Runnable {
     } 
     this.damaged++;
   }
-  
+ 
+  // main logic of the game??
   void prt() {
+    // rounds changed based on score
     if (this.score > this.clearScore[this.round]) {
       this.round++;
       if (this.round > 9)
@@ -381,7 +394,7 @@ public class Game extends Canvas implements Runnable {
       if (this.score < 200)
         this.yy = _h_ - 10 + this.score / 20; 
       if (this.isLoaded) {
-        if (this.vx > 0.2D)
+	if (this.vx > 0.2D)
           this.myImg0 = this.myImgs[10]; 
         if (this.vx > 0.4D)
           this.myImg0 = this.myImgs[11]; 
@@ -391,31 +404,38 @@ public class Game extends Canvas implements Runnable {
           this.myImg0 = this.myImgs[9]; 
         if (this.damaged != 0)
           this.myImg0 = this.myImgs[12]; 
-        if (this.damaged == 0) {
-          this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy, this);
+	if (this.damaged == 0) {
+	    // no hits -> normal picture
+	    //this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy, this);
+	    this.gra.drawImage(this.myImg0, new AffineTransform(0.5,0,0,0.5,this.centerX,this.centerY),this);
         } else {
           if (this.damaged > 4)
+	    // draw image of falling
             this.myImg0 = this.myImgs[13]; 
-          this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy + 3 * this.damaged + 8, this);
+//          this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy + 3 * this.damaged + 8, this);
+          this.gra.drawImage(this.myImg0, new AffineTransform(0.5,0,0,0.5,this.centerX,this.centerY), this);
         } 
       } else {
-        if (this.tracker.checkAll())
-          this.isLoaded = true; 
+	if (this.tracker.checkAll()){
+		this.isLoaded = true; 
+	}
         this.gra.setColor(Color.blue);
         this.gra.fillRect(this.centerX - this.mywidth2, this.height - this.yy, this.mywidth2 * 2, 16);
       } 
     } 
-    if (this.damaged > 0)
-      putbomb(); 
+    if (this.damaged > 0) {
+	putbomb(); 
+    }
     this.ThisGra.drawImage(this.img, 0, 0, null);
-    this.gra.setColor(this.bkcolors[this.round]);
+    this.gra.setColor(this.bgColors[this.round]);
     this.gra.fillRect(0, 0, this.width, this.height);
     if (this.scFlag && this.gameMode == 0) {
       this.parent.scoreWin.setNum(this.score);
       this.scFlag = false;
     } else {
       this.scFlag = true;
-    } 
+    }
+    // compute current score
     if (this.damaged == 0) {
       long l1;
       this.score++;
@@ -465,26 +485,31 @@ public class Game extends Canvas implements Runnable {
       } 
     } 
   }
-  
+
+  // define how obstacles behave in the game
   boolean moveObstacle() {
-    boolean bool = false;
+    boolean collision = false;
     double d5 = 0.8D;
-    if (this.round >= 8)
-      d5 = 0.8D; 
+    if (this.round >= 8) {
+	d5 = 0.8D; 
+    }
     Obstacle obstacle1 = this.Head;
     while (obstacle1 != null) {
       Obstacle obstacle2 = obstacle1.next;
-      for (byte b = 0; b < Obstacle.lgt; b++) {
-        obstacle1.z[b] = obstacle1.z[b] - 1.0D;
-        obstacle1.x[b] = obstacle1.x[b] + this.vx;
+      for (int i = 0; i < Obstacle.lgt; i++) {
+        obstacle1.z[i] -= 1.0D;
+        obstacle1.x[i] += this.vx;
       } 
       if (obstacle1.z[0] <= 1.3D) {
-        int j = this.centerX - this.mywidth2;
-        int k = j + 29;
-        int m = this.height - this.yy;
-        int n = m + 35;
-        if (obstacle1.ut(j, k, m, n))
-          bool = true; 
+        int xMin = this.centerX - this.mywidth2;
+        int xMax = xMin + 29;
+        int yMin = this.height - this.yy;
+        int yMax = yMin + 35;
+        if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
+	    collision = true;
+	    //TODO make colour change show but not last (rotated obstacles)
+	    obstacle1.setCollided(collision);
+	}
         if (obstacle1.prev != null)
           obstacle1.prev.next = obstacle1.next; 
         if (obstacle1.next != null)
@@ -577,11 +602,12 @@ public class Game extends Canvas implements Runnable {
       obstacle1.fill(this.gra);
       obstacle1 = obstacle1.next;
     } 
-    return bool;
+    return collision;
   }
   
   void putExtra() {}
-  
+ 
+  // main state machine of game
   public void run() {
     this.ThisGra = (Graphics2D) getGraphics();
     System.gc();
@@ -600,38 +626,39 @@ public class Game extends Canvas implements Runnable {
     if (this.round > 0)
       this.score = this.clearScore[this.round - 1] - 1000; 
     this.maxcount = this.maxcounts[this.round];
-    while (!moveObstacle())
-      prt(); 
+    while (!moveObstacle()) { // until collision happens
+	prt();
+    }
     this.score_ = this.score;
     this.damaged = 1;
-    for (byte b = 1; b < 24; b++) {
+    for (int i = 1; i < 24; i++) {
       moveObstacle();
       prt();
     } 
     if (this.score_ > this.hiscore) {
       this.hiscore = this.score_;
-      if (this.parent.userid != null && !this.parent.userid.equals("guest"))
-        try {
-          URL uRL = new URL("/applets/hiscore/hs_main.htmp?name=" + URLEncoder.encode(this.parent.userid) + "&high=" + this.hiscore + "&sorMax=" + '\n' + "&userfile=" + "pokemon");
-          URLConnection uRLConnection = uRL.openConnection();
-          int i = 2000;
-          byte[] arrayOfByte = new byte[i];
-          InputStream inputStream = uRLConnection.getInputStream();
-          String str = "";
-          while (true) {
-            int j = inputStream.read(arrayOfByte);
-            if (j != -1) {
-              if (j > i)
-                j = i; 
-              str = str + new String(arrayOfByte, 0, 0, j);
-              Thread.currentThread().yield();
-              continue;
-            } 
-            break;
-          } 
-        } catch (Exception exception) {
-          System.out.println("High Score write Error\n" + exception);
-        }  
+      //if (this.parent.userid != null && !this.parent.userid.equals("guest"))
+      //  try {
+      //    URL uRL = new URL("/applets/hiscore/hs_main.htmp?name=" + URLEncoder.encode(this.parent.userid) + "&high=" + this.hiscore + "&sorMax=" + '\n' + "&userfile=" + "pokemon");
+      //    URLConnection uRLConnection = uRL.openConnection();
+      //    int i = 2000;
+      //    byte[] arrayOfByte = new byte[i];
+      //    InputStream inputStream = uRLConnection.getInputStream();
+      //    String str = "";
+      //    while (true) {
+      //      int j = inputStream.read(arrayOfByte);
+      //      if (j != -1) {
+      //        if (j > i)
+      //          j = i; 
+      //        str = str + new String(arrayOfByte, 0, 0, j);
+      //        Thread.currentThread().yield();
+      //        continue;
+      //      } 
+      //      break;
+      //    } 
+      //  } catch (Exception exception) {
+      //    System.out.println("High Score write Error\n" + exception);
+      //  }  
     } 
     this.parent.scoreHigh.setNum(this.hiscore);
     this.startFlag = false;
@@ -641,7 +668,8 @@ public class Game extends Canvas implements Runnable {
     } catch (InterruptedException interruptedException) {}
     demo();
   }
-  
+
+  // demo shown before game starts (movin dustbins without pikachu)
   void demo() {
     this.gameMode = 2;
     clearObstacle();
