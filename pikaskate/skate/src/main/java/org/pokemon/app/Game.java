@@ -2,18 +2,13 @@ package org.pokemon.app;
 
 import java.awt.event.*;
 import javax.swing.JPanel;
-import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
@@ -80,10 +75,9 @@ public class Game extends JPanel implements Runnable{
   int[] maxcounts;
   boolean rFlag; // whether palyer pressed right arrow
   boolean lFlag; // whether palyer pressed left arrow
-  boolean spcFlag; // whether palyer pressed SPACE	
   private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
 
-  MainApp parent;
+  MainApp parent; // connection to parent to set score, quit game etc.
   boolean isFocus;
   boolean isFocus2;
   boolean scFlag;
@@ -108,8 +102,8 @@ public class Game extends JPanel implements Runnable{
     this.isContinue = false;
     this.registMode = false;
     this.isInPage = false;
-    this.isLoaded = false;
-    this.clearScore = new int[] { 8000, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
+    this.isLoaded = false;	// 8000
+    this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
     this.bgColors = 
       new Color[] { new Color(48, 11, 142), 
         new Color(48, 11, 160), 
@@ -126,7 +120,6 @@ public class Game extends JPanel implements Runnable{
         1, 1 };
     this.rFlag = false;
     this.lFlag = false;
-    this.spcFlag = false;
     this.isFocus = true;
     this.isFocus2 = true;
     this.scFlag = true;
@@ -191,20 +184,33 @@ public class Game extends JPanel implements Runnable{
 
 
     private void setKeyBindings() { //WHEN_IN_FOCUSED_WINDOW
-	// space key events
+	// space key to start game from beginning
 	this.getInputMap()
 	    .put(KeyStroke.getKeyStroke("SPACE"), "spacePressAction");
 	this.getActionMap()
 	    .put("spacePressAction", spacePressAction);
+	// c press to continue at reached level
 	this.getInputMap()
-	    .put(KeyStroke.getKeyStroke("released SPACE"), "spaceReleaseAction");
+	    .put(KeyStroke.getKeyStroke("C"), "cPressAction");
 	this.getActionMap()
-	    .put("spaceReleaseAction", spaceReleaseAction);
+	    .put("cPressAction", cPressAction);
+	// s press to see current ranking 
+	this.getInputMap()
+	    .put(KeyStroke.getKeyStroke("S"), "sPressAction");
+	this.getActionMap()
+	    .put("sPressAction", sPressAction);
+	// ctrl+q press to quit game
+	this.getInputMap()
+	    .put(KeyStroke.getKeyStroke("control Q"), "qPressAction");
+	this.getActionMap()
+	    .put("qPressAction", qPressAction);
 
 	// arrow key events
 	for (int i = 0; i < commands.length; i++) { 
+	    // arrow key presses
 	    registerKeyboardAction(arrowPressAction, commands[i], KeyStroke
 		.getKeyStroke(commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    // arrow key releases
 	    registerKeyboardAction(arrowReleaseAction, commands[i], KeyStroke
 		.getKeyStroke("released " + commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
@@ -213,17 +219,37 @@ public class Game extends JPanel implements Runnable{
     // action to be performed when space is pressed
     Action spacePressAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
-	    spcFlag = true; // pressed space
+	    System.out.println("hit SPACE");
 	    isContinue = false;
 	    if (!startFlag) {
 		startGame(true);
 	    }
         }
     };
-    // action for space is released
-    Action spaceReleaseAction = new AbstractAction() {
+    // pressing s takes user to ranking table
+    Action sPressAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
-	    spcFlag = false; // released space
+	    System.out.println("hit S");
+	    if (!startFlag && hiscore != 0) {
+		gotoRanking();
+	    }
+        }
+    };
+    // if is c pressed, continue game from higher attained level
+    Action cPressAction = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+	    System.out.println("hit C");
+	    if (!startFlag) {
+		isContinue = true;	
+		startGame(true);
+	    }
+        }
+    };
+    // quit game with ctrl+q
+    Action qPressAction = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+	    System.out.println("hit CTRL+Q");
+	    parent.quit();
         }
     };
 
@@ -234,15 +260,10 @@ public class Game extends JPanel implements Runnable{
         public void actionPerformed(ActionEvent ae)
         {
             String command = (String) ae.getActionCommand();
-            if (command.equals(commands[0])) { // s to go to ranking
-		if (!startFlag && hiscore != 0) {
-		    gotoRanking();
-		}
+            if (command.equals(commands[0])) { //TODO implement UP
+		stop();
 	    }
-            else if (command.equals(commands[1])) { // c: start from best level
-		if (!startFlag) {
-		    isContinue = true;	
-		}
+            else if (command.equals(commands[1])) { //TODO implement DOWN
 	    }
             else if (command.equals(commands[2])) {// move left
 		lFlag = true;
@@ -266,59 +287,6 @@ public class Game extends JPanel implements Runnable{
         }
     };
 
-//  public boolean mouseDown(Event paramEvent, int paramInt1, int paramInt2) {
-//    if (paramEvent.modifiers == 4) {
-//      this.rFlag = true;
-//      this.lFlag = false;
-//    } else if (paramEvent.modifiers == 0) {
-//      this.rFlag = false;
-//      this.lFlag = true;
-//    } 
-//    if (this.startFlag)
-//      return false; 
-//    if (!this.isFocus2) {
-//      this.isFocus2 = true;
-//      return false;
-//    } 
-//    this.isContinue = false;
-//    startGame(true);
-//    return false;
-//  }
-//  
-//  public boolean mouseMove(Event paramEvent, int paramInt1, int paramInt2) {
-//    this.mouseX = paramInt1;
-//    this.mouseY = paramInt2;
-//    return true;
-//  }
-//  
-  public boolean keyDown(Event paramEvent, int paramInt) {
-    if (paramInt == 1007 || paramInt == 108)
-    if (paramInt == 1006 || paramInt == 106)
-      this.lFlag = true; // going left
-    if (paramInt == 97)
-      this.spcFlag = true; // pressed space
-    if (!this.startFlag && (paramInt == 32 || paramInt == 99 || paramInt == 67)) {
-      this.isContinue = false;
-      if (paramInt != 32) // press 'c' to continue from current level
-        this.isContinue = true; 
-      startGame(true);
-    }
-    // if in demo mode and 's' or '' pressed, go to ranking
-    if (!this.startFlag && (paramInt == 115 || paramInt == 83) && this.hiscore != 0)
-      gotoRanking(); 
-    return false;
-  }
-  
-  public boolean gotFocus(Event paramEvent, Object paramObject) {
-    this.isFocus = this.isFocus2 = true;
-    return true;
-  }
-  
-  public boolean lostFocus(Event paramEvent, Object paramObject) {
-    this.isFocus = this.isFocus2 = false;
-    return true;
-  }
- 
 //-------------------------------- Events end
 
   // delete all obstacles
@@ -526,7 +494,7 @@ public class Game extends JPanel implements Runnable{
       } 
     } 
     long l = 40L;
-    if (!this.spcFlag) {
+    if (true) {  //!isSpacePressed --> what does this do?
       long l1 = this.prevTime + l - System.currentTimeMillis();
       if (l1 <= 0L)
         l1 = 1L; 
