@@ -17,7 +17,7 @@ public class MainApp extends JFrame implements WindowListener {
     ScoreBoard highScore;
     String userid;
     int lang = 0; //TODO implement language options
-    String[] contMsg = { "Hit [C] continue from last stage", " " };
+    String[] contMsg = { "Hit [C] to continue from last stage", " " };
     String[] toStartMsg = { "Hit SPACE to start", " " };
     String[] clickMsg = { " ", " " };
 
