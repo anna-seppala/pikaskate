@@ -8,7 +8,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
-import java.io.InputStream;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
@@ -21,14 +20,14 @@ import javax.swing.JComponent;
 public class Game extends JPanel implements Runnable{
   static int horizon = 26;
   boolean fff;
-  static double[] si = new double[75];
-  static double[] co = new double[75];
+  static double[] sines = new double[75];
+  static double[] cosines = new double[75];
   int[] grX;
   int[] grY;
   static int _h_ = 76;
   int yy;
-  Obstacle Head;
-  Freeobj obstacles;
+  Obstacle Head; // first obstacle in double-linked list
+  Freeobj obstacles; // double-linked list of obstacles
   double vx;
   double mywidth;
   int mywidth2;
@@ -47,17 +46,14 @@ public class Game extends JPanel implements Runnable{
   double OX2;
   double OVX;
   int Direction;
-  int gameMode;
-  boolean startFlag;
+  int gameMode; // whether demoing or actually playing 1->demo, 0->real game
+  boolean startFlag; // whether game has been started
   boolean isContinue;
   boolean registMode;
   int width;
   int height;
   int centerX;
   int centerY;
-  int mouseX;
-  int mouseY;
-  boolean isInPage;
   
   Thread Game;
   Image myImg0;
@@ -66,9 +62,7 @@ public class Game extends JPanel implements Runnable{
   
   Graphics2D gra;
   Graphics2D ThisGra;
-  MediaTracker tracker;
   
-  boolean isLoaded;
   int round;
   int[] clearScore; // array showing which number of points starts new level
   Color[] bgColors; //colour of background (changes by level)
@@ -101,8 +95,7 @@ public class Game extends JPanel implements Runnable{
     this.startFlag = false;
     this.isContinue = false;
     this.registMode = false;
-    this.isInPage = false;
-    this.isLoaded = false;	// 8000
+				// 8000
     this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
     this.bgColors = 
       new Color[] { new Color(48, 11, 142), 
@@ -134,26 +127,25 @@ public class Game extends JPanel implements Runnable{
     this.gra.setColor(new Color(48, 11, 142));
     this.gra.fillRect(0, 0, this.width, this.height);
     for (int i = 0; i < 75; i++) {
-      si[i] = Math.sin(3.14159D * i / 75.0D / 6.0D);
-      co[i] = Math.cos(3.14159D * i / 75.0D / 6.0D);
+      sines[i] = Math.sin(3.14159D * i / 75.0D / 6.0D);
+      cosines[i] = Math.cos(3.14159D * i / 75.0D / 6.0D);
     } 
     this.grX[2] = this.width;
     this.grY[2] = this.height;
     this.grX[3] = 0;
     this.grY[3] = this.height;
-    this.mywidth2 = (int)(this.mywidth * 130.0D / (1.0D + Obstacle.T));//130.0D
     // open images and add to media tracker
     myImgs = new Image[14];
-    this.tracker = new MediaTracker(this.parent);
     for (int i=0; i<this.myImgs.length; i++) {
 	try {
 	    this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
 		    .getResource("img/img"+String.valueOf(i+1)+".png" ));
-	    this.tracker.addImage(this.myImgs[i], 0);
 	} catch (IOException e) {
+	    System.out.println(e);
 	}
+    //System.out.println(myImgs[0].getWidth() + "x" + myImgs[0].getHeight());
+    this.mywidth2 = (int)(this.mywidth * 130.0D / (1.0D + Obstacle.T));//120.0D
     }
-    this.tracker.checkAll(true);
   }
   
   public void stop() {
@@ -359,8 +351,9 @@ public class Game extends JPanel implements Runnable{
     // rounds changed based on score
     if (this.score > this.clearScore[this.round]) {
       this.round++;
-      if (this.round > 9)
-        this.round = 9; 
+      if (this.round > 9) {
+        this.round = 9; // why??
+      }
       this.maxcount = this.maxcounts[this.round];
     } 
     this.MCounter++;
@@ -434,7 +427,7 @@ public class Game extends JPanel implements Runnable{
       } 
       if (this.score < 200)
         this.yy = _h_ - 10 + this.score / 20; 
-      if (this.isLoaded) {
+      if (true) { //left from media tracker
 	if (this.vx > 0.2D)
           this.myImg0 = this.myImgs[10]; 
         if (this.vx > 0.4D)
@@ -457,9 +450,6 @@ public class Game extends JPanel implements Runnable{
           this.gra.drawImage(this.myImg0, new AffineTransform(0.5,0,0,0.5,this.centerX,this.centerY), this);
         } 
       } else {
-	if (this.tracker.checkAll()){
-		this.isLoaded = true; 
-	}
         this.gra.setColor(Color.blue);
         this.gra.fillRect(this.centerX - this.mywidth2, this.height - this.yy, this.mywidth2 * 2, 16);
       } 
@@ -528,6 +518,7 @@ public class Game extends JPanel implements Runnable{
   }
 
   // define how obstacles behave in the game
+  // returns true if player hit obstacle, false otherwise
   boolean moveObstacle() {
     boolean collision = false;
     double d5 = 0.8D;
@@ -625,8 +616,8 @@ public class Game extends JPanel implements Runnable{
       obstacle1.init(d, horizon);
     } 
     int i = (int)(Math.abs(this.vx) * 80.0D);
-    double d3 = si[i];
-    double d4 = co[i];
+    double d3 = sines[i];
+    double d4 = cosines[i];
     if (this.vx > 0.0D)
       d3 = -d3; 
     double d2 = 120.0D / (1.0D + Obstacle.T * horizon);
@@ -740,13 +731,13 @@ public class Game extends JPanel implements Runnable{
       this.gra.setFont(font2);
       this.gra.setColor(Color.black);
       this.gra.drawString(this.parent.toStartMsg[this.parent.lang], 46, this.centerY + 32);
-      if (this.mouseX > m && this.mouseX < m + k && 
-        this.mouseY > this.centerY + 74 && this.mouseY < this.centerY + 90) {
-        this.gra.setColor(Color.blue);
-        this.isInPage = true;
-      } else {
-        this.isInPage = false;
-      } 
+      //if (this.mouseX > m && this.mouseX < m + k && 
+      //  this.mouseY > this.centerY + 74 && this.mouseY < this.centerY + 90) {
+      //  this.gra.setColor(Color.blue);
+      //  this.isInPage = true;
+      //} else {
+      //  this.isInPage = false;
+      //} 
       this.gra.drawString(str2, m, this.centerY + 90);
       if (this.hiscore >= this.clearScore[0]) {
         this.gra.setColor(Color.black);
