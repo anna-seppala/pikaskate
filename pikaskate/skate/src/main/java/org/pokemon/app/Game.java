@@ -30,6 +30,10 @@ public class Game extends JPanel implements Runnable{
   double vx;
   double mywidth;
   int mywidth2;
+  int playerHeight;
+  double imageScaling;  // make sure player image always same size
+  int[] imageSize;  // original size of player images in width,height
+  
   int counter;
   int maxcount;
   int score;
@@ -142,8 +146,15 @@ public class Game extends JPanel implements Runnable{
 	} catch (IOException e) {
 	    System.out.println(e);
 	}
-    //System.out.println(myImgs[0].getWidth() + "x" + myImgs[0].getHeight());
+    System.out.println(myImgs[0].getWidth(null) + "x" + myImgs[0].getHeight(null));
     this.mywidth2 = (int)(this.mywidth * 130.0D / (1.0D + Obstacle.T));//120.0D
+    // assuming all images have same size:
+    this.imageSize = new int[2]; 
+    this.imageSize[0] = this.myImgs[0].getWidth(null);
+    this.imageSize[1] = this.myImgs[0].getHeight(null);
+    this.mywidth2 = 50;
+    this.imageScaling = ((double) this.mywidth2)/((double) this.imageSize[0]);
+    this.playerHeight = (int) (this.imageScaling * ((double) this.imageSize[1]));
     }
   }
   
@@ -346,175 +357,177 @@ public class Game extends JPanel implements Runnable{
   }
  
   // main logic of the game??
-  void prt() {
-    // rounds changed based on score
-    if (this.score > this.clearScore[this.round]) {
-      this.round++;
-      if (this.round > 9) {
-        this.round = 9; // why??
-      }
-      this.maxcount = this.maxcounts[this.round];
-    } 
-    this.MCounter++;
-    if (this.damaged < 40 && this.gameMode == 0) {
-      int i;
-      this.myImg0 = this.myImgs[0];
-      switch (this.PCounter) {
-        case 0:
-          if (this.MCounter % 24 > 18) {
-            this.myImg0 = this.myImgs[1];
-            this.PCounter = 1;
-            this.ECounter = 0;
-          } 
-          break;
-        case 1:
-          this.myImg0 = this.myImgs[1];
-          i = (int)Math.abs(Math.random() * 5.0D);
-          if (++this.ECounter % 12 > i) {
-            this.WCounter = 0;
-            this.mode = (int)Math.abs(Math.random() * 100.0D);
-            if (this.mode > 30) {
-              this.mode = 1;
-              this.PCounter = 7;
-              break;
-            } 
-            this.mode = 0;
-            this.PCounter = 2;
-            break;
-          } 
-          this.PCounter = 0;
-          break;
-        case 2:
-          this.myImg0 = this.myImgs[2];
-          if (++this.WCounter > 2) {
-            this.PCounter = (this.mode == 0) ? 3 : 0;
-            this.WCounter = 0;
-          } 
-          break;
-        case 3:
-          this.myImg0 = this.myImgs[3];
-          if (++this.WCounter >= 2) {
-            this.PCounter = (this.mode == 0) ? 4 : 2;
-            this.ECounter = 0;
-            this.WCounter = 0;
-          } 
-          break;
-        case 4:
-          this.myImg0 = this.myImgs[4];
-          if (this.ECounter++ > 4)
-            this.PCounter = (this.mode == 0) ? 5 : 3; 
-          break;
-        case 5:
-          this.myImg0 = this.myImgs[5];
-          this.PCounter = (this.mode == 0) ? 6 : 4;
-          this.WCounter = 0;
-          break;
-        case 6:
-          this.myImg0 = this.myImgs[6];
-          if (++this.WCounter >= 2) {
-            this.PCounter = (this.mode == 0) ? 7 : 5;
-            this.WCounter = 0;
-          } 
-          break;
-        case 7:
-          this.myImg0 = this.myImgs[7];
-          if (++this.WCounter > 2) {
-            this.PCounter = (this.mode == 0) ? 0 : 6;
-            this.WCounter = 0;
-          } 
-          break;
-      } 
-      if (this.score < 200)
-        this.yy = _h_ - 10 + this.score / 20; 
-      if (true) { //left from media tracker
-	if (this.vx > 0.2D)
-          this.myImg0 = this.myImgs[10]; 
-        if (this.vx > 0.4D)
-          this.myImg0 = this.myImgs[11]; 
-        if (this.vx < -0.2D)
-          this.myImg0 = this.myImgs[8]; 
-        if (this.vx < -0.4D)
-          this.myImg0 = this.myImgs[9]; 
-        if (this.damaged != 0)
-          this.myImg0 = this.myImgs[12]; 
+    void prt() {
+	// rounds changed based on score
+	if (this.score > this.clearScore[this.round]) {
+	    this.round++;
+	    if (this.round > 9) {
+		this.round = 9; // why??
+	    }
+	    this.maxcount = this.maxcounts[this.round];
+	} 
+	this.MCounter++;
+	if (this.damaged < 40 && this.gameMode == 0) {
+	    int i;
+	    this.myImg0 = this.myImgs[0];
+	    switch (this.PCounter) {
+		case 0:
+		    if (this.MCounter % 24 > 18) {
+			this.myImg0 = this.myImgs[1];
+			this.PCounter = 1;
+			this.ECounter = 0;
+		    } 
+		    break;
+		case 1:
+		    this.myImg0 = this.myImgs[1];
+      		    i = (int)Math.abs(Math.random() * 5.0D);
+      		    if (++this.ECounter % 12 > i) {
+			this.WCounter = 0;
+			this.mode = (int)Math.abs(Math.random() * 100.0D);
+			if (this.mode > 30) {
+			    this.mode = 1;
+			    this.PCounter = 7;
+			    break;
+			} 
+			this.mode = 0;
+			this.PCounter = 2;
+			break;
+		    } 
+		    this.PCounter = 0;
+		    break;
+		case 2:
+		    this.myImg0 = this.myImgs[2];
+		    if (++this.WCounter > 2) {
+			this.PCounter = (this.mode == 0) ? 3 : 0;
+			this.WCounter = 0;
+		    } 
+		    break;
+		case 3:
+		    this.myImg0 = this.myImgs[3];
+		    if (++this.WCounter >= 2) {
+			this.PCounter = (this.mode == 0) ? 4 : 2;
+			this.ECounter = 0;
+			this.WCounter = 0;
+		    } 
+		    break;
+		case 4:
+		    this.myImg0 = this.myImgs[4];
+		    if (this.ECounter++ > 4) {
+			this.PCounter = (this.mode == 0) ? 5 : 3; 
+		    }
+		    break;
+		case 5:
+		    this.myImg0 = this.myImgs[5];
+		    this.PCounter = (this.mode == 0) ? 6 : 4;
+		    this.WCounter = 0;
+		    break;
+		case 6:
+		    this.myImg0 = this.myImgs[6];
+		    if (++this.WCounter >= 2) {
+			this.PCounter = (this.mode == 0) ? 7 : 5;
+			this.WCounter = 0;
+		    } 
+		    break;
+		case 7:
+		    this.myImg0 = this.myImgs[7];
+		    if (++this.WCounter > 2) {
+			this.PCounter = (this.mode == 0) ? 0 : 6;
+			this.WCounter = 0;
+		    }
+		    break;
+		default:
+		    break;
+	    } // if damaged < 40 and gameMode == 0
+	   if (this.score < 200)
+		this.yy = _h_ - 10 + this.score / 20; 
+	    if (this.vx > 0.2D)
+		this.myImg0 = this.myImgs[10]; 
+	    if (this.vx > 0.4D)
+		this.myImg0 = this.myImgs[11]; 
+	    if (this.vx < -0.2D)
+		this.myImg0 = this.myImgs[8]; 
+	    if (this.vx < -0.4D)
+		this.myImg0 = this.myImgs[9]; 
+	    if (this.damaged != 0)
+		this.myImg0 = this.myImgs[12]; 
+	    if (this.damaged == 0) {
+		// no hits -> normal picture
+		this.gra.drawImage(this.myImg0, new AffineTransform(
+		    this.imageScaling,0,0,this.imageScaling,this.centerX-this.mywidth2/2,
+		    this.height-this.playerHeight),this);
+	    } else {
+		if (this.damaged > 4) {
+		    // draw image of falling
+		    this.myImg0 = this.myImgs[13];
+		}
+		//this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy + 3 * this.damaged + 8, this);
+		this.gra.drawImage(this.myImg0, new AffineTransform(
+		    this.imageScaling,0,0,this.imageScaling,this.centerX-this.mywidth2/2,
+		    this.height-this.playerHeight),this);
+	    } 
+	} 
+	if (this.damaged > 0) {
+	    putbomb(); 
+	}
+	this.ThisGra.drawImage(this.img, 0, 0, null);
+	this.gra.setColor(this.bgColors[this.round]);
+	this.gra.fillRect(0, 0, this.width, this.height);
+	if (this.scFlag && this.gameMode == 0) {
+	    this.parent.scoreWin.setNum(this.score);
+	    this.scFlag = false;
+	} else {
+	    this.scFlag = true;
+	}
+	// compute current score
 	if (this.damaged == 0) {
-	    // no hits -> normal picture
-	    //this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy, this);
-	    this.gra.drawImage(this.myImg0, new AffineTransform(0.5,0,0,0.5,this.centerX,this.centerY),this);
-        } else {
-          if (this.damaged > 4)
-	    // draw image of falling
-            this.myImg0 = this.myImgs[13]; 
-//          this.gra.drawImage(this.myImg0, this.centerX - this.mywidth2, this.height - this.yy + 3 * this.damaged + 8, this);
-          this.gra.drawImage(this.myImg0, new AffineTransform(0.5,0,0,0.5,this.centerX,this.centerY), this);
-        } 
-      } else {
-        this.gra.setColor(Color.blue);
-        this.gra.fillRect(this.centerX - this.mywidth2, this.height - this.yy, this.mywidth2 * 2, 16);
-      } 
-    } 
-    if (this.damaged > 0) {
-	putbomb(); 
+	    long l1;
+	    this.score++;
+	    if (this.prevTime != 0L) {
+		l1 = 55L - System.currentTimeMillis() - this.prevTime;
+	    } else {
+		l1 = 0L;
+	    } 
+	    if (l1 < 0L) {
+		l1 = 1L;
+		if (l1 > -40L)
+		    this.score += (int)((40L + l1) / 4L); 
+	    } else {
+		this.score += 5;
+	    } 
+	} 
+	long l = 40L;
+	if (true) {  //!isSpacePressed --> what does this do?
+	    long l1 = this.prevTime + l - System.currentTimeMillis();
+	    if (l1 <= 0L)
+		l1 = 1L; 
+	    try {
+		Thread.currentThread().sleep(l1);
+	    } catch (Exception exception) {}
+	} 
+	this.prevTime = System.currentTimeMillis();
+	if (this.damaged == 0 && this.gameMode == 0) {
+	    if (this.rFlag)
+		this.vx -= 0.11D; 
+	    if (this.lFlag)
+		this.vx += 0.11D; 
+	    if (this.vx < -0.6D)
+		this.vx = -0.6D; 
+	    if (this.vx > 0.6D)
+		this.vx = 0.6D; 
+	} 
+	if (!this.lFlag && !this.rFlag) {
+	    if (this.vx < 0.0D) {
+		this.vx += 0.025D;
+	    if (this.vx > 0.0D)
+		this.vx = 0.0D; 
+	    } 
+	    if (this.vx > 0.0D) {
+		this.vx -= 0.025D;
+		if (this.vx < 0.0D)
+		    this.vx = 0.0D; 
+	    } 
+	} 
     }
-    this.ThisGra.drawImage(this.img, 0, 0, null);
-    this.gra.setColor(this.bgColors[this.round]);
-    this.gra.fillRect(0, 0, this.width, this.height);
-    if (this.scFlag && this.gameMode == 0) {
-      this.parent.scoreWin.setNum(this.score);
-      this.scFlag = false;
-    } else {
-      this.scFlag = true;
-    }
-    // compute current score
-    if (this.damaged == 0) {
-      long l1;
-      this.score++;
-      if (this.prevTime != 0L) {
-        l1 = 55L - System.currentTimeMillis() - this.prevTime;
-      } else {
-        l1 = 0L;
-      } 
-      if (l1 < 0L) {
-        l1 = 1L;
-        if (l1 > -40L)
-          this.score += (int)((40L + l1) / 4L); 
-      } else {
-        this.score += 5;
-      } 
-    } 
-    long l = 40L;
-    if (true) {  //!isSpacePressed --> what does this do?
-      long l1 = this.prevTime + l - System.currentTimeMillis();
-      if (l1 <= 0L)
-        l1 = 1L; 
-      try {
-        Thread.currentThread().sleep(l1);
-      } catch (Exception exception) {}
-    } 
-    this.prevTime = System.currentTimeMillis();
-    if (this.damaged == 0 && this.gameMode == 0) {
-      if (this.rFlag)
-        this.vx -= 0.11D; 
-      if (this.lFlag)
-        this.vx += 0.11D; 
-      if (this.vx < -0.6D)
-        this.vx = -0.6D; 
-      if (this.vx > 0.6D)
-        this.vx = 0.6D; 
-    } 
-    if (!this.lFlag && !this.rFlag) {
-      if (this.vx < 0.0D) {
-        this.vx += 0.025D;
-        if (this.vx > 0.0D)
-          this.vx = 0.0D; 
-      } 
-      if (this.vx > 0.0D) {
-        this.vx -= 0.025D;
-        if (this.vx < 0.0D)
-          this.vx = 0.0D; 
-      } 
-    } 
-  }
 
   // define how obstacles behave in the game
   // returns true if player hit obstacle, false otherwise
