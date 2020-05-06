@@ -15,15 +15,16 @@ public class MainApp extends JFrame implements WindowListener {
     Game game;
     ScoreBoard currentScore;
     ScoreBoard highScore;
+    ScoreBoard currentLevel;
     String userid;
     int lang = 0; //TODO implement language options
     String[] contMsg = { "Hit [C] to continue from last stage", " " };
     String[] toStartMsg = { "Hit SPACE to start", " " };
     String[] clickMsg = { " ", " " };
-
-    ImageIcon heart1 = new ImageIcon("/home/seppala/devel/src/hack/pikaskate/skate/src/main/resources/img/heart1.png");
-    ImageIcon heart2 = new ImageIcon("/home/seppala/devel/src/hack/pikaskate/skate/src/main/resources/img/heart2.png");
-    ImageIcon heart3 = new ImageIcon("/home/seppala/devel/src/hack/pikaskate/skate/src/main/resources/img/heart3.png");
+    // set images now before any threads are started (could lead to error?)
+    ImageIcon heart1 = new ImageIcon(getClass().getClassLoader().getResource("img/heart4.png"));
+    ImageIcon heart2 = new ImageIcon(getClass().getClassLoader().getResource("img/heart4.png"));
+    ImageIcon heart3 = new ImageIcon(getClass().getClassLoader().getResource("img/heart5.png"));
     JLabel imageLabel1;
     JLabel imageLabel2;
     JLabel imageLabel3;
@@ -40,6 +41,10 @@ public class MainApp extends JFrame implements WindowListener {
       	this.setBackground(new Color(80, 7, 37));
       	this.currentScore = new ScoreBoard("Score: ");
       	this.currentScore.setForeground(Color.white);
+
+	this.currentLevel = new ScoreBoard("Level: ");
+      	this.currentLevel.setForeground(Color.white);
+
       	JPanel panel1 = new JPanel();
       	panel1.setLayout(new FlowLayout(0));
       	panel1.setForeground(Color.white);
@@ -49,14 +54,12 @@ public class MainApp extends JFrame implements WindowListener {
 	imageLabel2 = new JLabel(heart2);
 	imageLabel3 = new JLabel(heart3);
       	panel1.add(this.currentScore);
-	panel1.add(imageLabel1);
-	panel1.add(imageLabel2);
-	panel1.add(imageLabel3);
+	panel1.add(this.currentLevel);
+	panel1.add(this.imageLabel1);
+	panel1.add(this.imageLabel2);
+	panel1.add(this.imageLabel3);
       	this.add(panel1, BorderLayout.PAGE_START);
 
-	//heart1 = new ImageIcon(getClass().getResource("img/heart1.png"));
-	//heart2 = new ImageIcon(getClass().getResource("img/heart2.png"));
-	//heart3 = new ImageIcon(getClass().getResource("img/heart3.png"));
       	JPanel panel = new JPanel();
       	panel.setLayout(new FlowLayout(0));
       	panel.setForeground(Color.white);

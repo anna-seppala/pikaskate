@@ -464,6 +464,7 @@ public class Game extends JPanel implements Runnable{
 	this.gra.fillRect(0, 0, this.width, this.height);
 	if (this.scFlag && this.gameMode == 0) {
 	    this.parent.currentScore.setNum(this.score);
+	    this.parent.currentLevel.setNum(this.level);
 	    this.scFlag = false;
 	} else {
 	    this.scFlag = true;
