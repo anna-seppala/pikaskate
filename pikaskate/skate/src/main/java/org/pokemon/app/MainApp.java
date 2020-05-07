@@ -11,6 +11,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import java.awt.Font;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.LineUnavailableException;
+import java.io.*;
 
 public class MainApp extends JFrame implements WindowListener {
     Game game;
@@ -78,6 +84,7 @@ public class MainApp extends JFrame implements WindowListener {
       	this.game.init();
       	this.game.requestFocus();
       	this.start();
+	this.music();
     }
  
     public static void main(String[] args) {
@@ -116,6 +123,25 @@ public class MainApp extends JFrame implements WindowListener {
     public void windowActivated(WindowEvent e){}
     public void windowDeactivated(WindowEvent e){}
 
-}
+
+    public void music() 
+    {   
+	try {
+	    AudioInputStream bgMusic = AudioSystem.getAudioInputStream(getClass().getClassLoader()
+		.getResource("sound/opening.wav"));
+	    Clip clip = AudioSystem.getClip();
+	    clip.open(bgMusic);
+	    clip.start();
+	} catch (UnsupportedAudioFileException e) {
+	    e.printStackTrace();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	} catch (LineUnavailableException e) {
+	     e.printStackTrace();
+	}
+    }
+
+
+} // MainApp
 
 
