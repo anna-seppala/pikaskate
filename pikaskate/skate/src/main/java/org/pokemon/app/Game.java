@@ -55,7 +55,7 @@ public class Game extends JPanel implements Runnable{
   int centerX;
   int centerY;
   
-  Thread Game;
+  private volatile Thread gameThread;
   Image myImg0;
   Image img;
   Image[] myImgs;
@@ -77,8 +77,9 @@ public class Game extends JPanel implements Runnable{
   boolean isFocus2;
   boolean scFlag;
   long prevTime;
-  int damaged;
-  
+  int damaged; // TODO join damaged and health?
+  int health;
+
   // constructor
   public Game(MainApp paramMain) {
     //set container size and find center point
@@ -115,6 +116,7 @@ public class Game extends JPanel implements Runnable{
     this.isFocus2 = true;
     this.scFlag = true;
     this.parent = paramMain;
+    this.health = parent.maxHealth;
     setKeyBindings();
   }
   
@@ -139,7 +141,7 @@ public class Game extends JPanel implements Runnable{
 	    this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
 		    .getResource("img/img"+String.valueOf(i+1)+".png" ));
 	} catch (IOException e) {
-	    System.out.println(e);
+	    System.out.println("error in init() when loading images: " +e);
 	}
     }
     // assuming all images have same size:
@@ -151,16 +153,17 @@ public class Game extends JPanel implements Runnable{
     this.playerHeight = (int) (this.imageScaling * ((double) this.imageSize[1]));
   }
   
-  public void stop() {
-    if (this.Game != null)
-      this.Game.stop(); 
-    this.Game = null;
-    this.startFlag = false;
-    this.registMode = false;
-    this.gameMode = 0;
+    public void stop() {
+	if (this.gameThread != null)
+	//this.gameThread.stop();
+	System.out.println("stop(): killing thread");
+	this.gameThread = null;
+	this.startFlag = false;
+	this.registMode = false;
+	this.gameMode = 0;
   }
  
-  // paint methods overridden: For what?
+  // paint method used to show ranking board. doesn't work yet
   public void paint(Graphics g) {
 	Graphics2D g2d = (Graphics2D) g;
     if (this.registMode) {
@@ -301,24 +304,30 @@ public class Game extends JPanel implements Runnable{
 	return; // don't start again if already started
     }
     if (playNow) { // playNow means we put player in game and count score
-      if (this.Game != null) {
-        this.Game.stop();
-        this.Game = null;
-      } 
+      if (this.gameThread != null) {
+	Thread moribund = this.gameThread;
+	this.gameThread.stop();
+        this.gameThread = null;
+	System.out.println("startGame playNow=true: killing thread");
+        moribund.interrupt();
+      }
       this.startFlag = true;
       this.gameMode = 0;
-      this.Game = new Thread(this);
-      this.Game.start();
+      this.gameThread = new Thread(this);
+      this.gameThread.start();
     } else {
 	// if playNow == false -> play demo instead of real game
 	if (this.gameMode == 0) {
-	    if (this.Game != null) {
-		this.Game.stop();
-		this.Game = null;
+	    if (this.gameThread != null) {
+		Thread moribund = this.gameThread;
+		//this.gameThread.stop();
+		System.out.println("startGame playNow=false: killing thread");
+		this.gameThread = null;
+		moribund.interrupt();
 	    } 
 	    this.gameMode = 1;
-	    this.Game = new Thread(this);
-	    this.Game.start();
+	    this.gameThread = new Thread(this);
+	    this.gameThread.start();
 	}
     } 
   }
@@ -493,7 +502,9 @@ public class Game extends JPanel implements Runnable{
 		l1 = 1L; 
 	    try {
 		Thread.currentThread().sleep(l1);
-	    } catch (Exception exception) {}
+	    } catch (Exception exception) {
+		System.out.println("exception in prt(): " + exception);
+	    }
 	} 
 	this.prevTime = System.currentTimeMillis();
 	if (this.damaged == 0 && this.gameMode == 0) {
@@ -650,6 +661,7 @@ public class Game extends JPanel implements Runnable{
  
   // main state machine of game
   public void run() {
+    Thread thisThread = Thread.currentThread(); // added to try get rid of Thread.stop
     this.ThisGra = (Graphics2D) getGraphics();
     System.gc();
     if (this.gameMode > 0) {
@@ -669,7 +681,7 @@ public class Game extends JPanel implements Runnable{
 	this.score = this.clearScore[this.level - 1] - 1000; 
     }
     this.maxcount = this.maxcounts[this.level];
-    while (!moveObstacle()) { // until collision happens
+    while (!moveObstacle() && (thisThread == this.gameThread)) { // until collision happens
 	prt();
     }
     this.score_ = this.score;
@@ -702,13 +714,21 @@ public class Game extends JPanel implements Runnable{
       //  } catch (Exception exception) {
       //    System.out.println("High Score write Error\n" + exception);
       //  }  
-    } 
+    }
+    // update scoreboard and health
     this.parent.highScore.setNum(this.hiscore);
+    this.health--;
+    if (this.health < 0) {
+	this.health = 0;
+    }
+    this.parent.healthMeter.setHealth(this.health);
     this.startFlag = false;
     this.gameMode = 1;
     try {
       Thread.currentThread().sleep(3000L);
-    } catch (InterruptedException interruptedException) {}
+    } catch (InterruptedException interruptedException) {
+	System.out.println("exception in run(): " + interruptedException);
+    }
     demo();
   }
 

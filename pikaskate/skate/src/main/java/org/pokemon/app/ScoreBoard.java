@@ -10,9 +10,9 @@ public class ScoreBoard extends Canvas {
     int scoreValue;
     String label;
   
-    public ScoreBoard(String paramString) {
+    public ScoreBoard(String newLabel) {
 	this.scoreValue = 0;
-	this.label = paramString;
+	this.label = newLabel;
 	this.setSize(new Dimension(200,28));
     }
   
@@ -23,11 +23,9 @@ public class ScoreBoard extends Canvas {
 	g2d.drawString(" " + this.label + this.scoreValue, 4, 18);
     }
   
-    public void setNum(int paramInt) {
-	this.scoreValue = paramInt;
-	Graphics2D g2d = (Graphics2D) getGraphics();
-	g2d.clearRect(0, 0, getWidth(), getHeight());
-	paint(g2d);
+    public void setNum(int newScore) {
+	this.scoreValue = newScore;
+	repaint();
     }
 }// ScoreBoard
 
