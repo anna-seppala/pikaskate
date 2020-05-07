@@ -249,7 +249,7 @@ public class Game extends JPanel implements Runnable{
 
     private void setKeyBindings() { //WHEN_IN_FOCUSED_WINDOW
 	// space key to start game from beginning
-	this.getInputMap()
+	this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 	    .put(KeyStroke.getKeyStroke("SPACE"), "spacePressAction");
 	this.getActionMap()
 	    .put("spacePressAction", spacePressAction);
@@ -259,12 +259,12 @@ public class Game extends JPanel implements Runnable{
 	//this.getActionMap()
 	//    .put("cPressAction", cPressAction);
 	// s press to see current ranking 
-	this.getInputMap()
+	this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 	    .put(KeyStroke.getKeyStroke("S"), "sPressAction");
 	this.getActionMap()
 	    .put("sPressAction", sPressAction);
 	// ctrl+q press to quit game
-	this.getInputMap()
+	this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 	    .put(KeyStroke.getKeyStroke("control Q"), "qPressAction");
 	this.getActionMap()
 	    .put("qPressAction", qPressAction);

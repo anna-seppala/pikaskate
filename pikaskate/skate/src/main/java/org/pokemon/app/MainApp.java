@@ -4,19 +4,14 @@ import java.awt.event.*;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import java.awt.Font;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.sound.sampled.LineUnavailableException;
-import java.io.*;
 
 public class MainApp extends JFrame implements WindowListener {
     Game game;
@@ -24,6 +19,7 @@ public class MainApp extends JFrame implements WindowListener {
     ScoreBoard highScore;
     ScoreBoard currentLevel;
     HealthMeter healthMeter;
+    MusicPlayer musicPlayer;
     int maxHealth = 3;
     String userid;
     int lang = 0; //TODO implement language options
@@ -44,8 +40,6 @@ public class MainApp extends JFrame implements WindowListener {
       	this.userid = "Sk8erB0i";
       	this.setLayout(new BorderLayout());
 
-      	//this.setForeground(Color.white);
-      	//this.setBackground(new Color(80, 7, 37));
 	//Set current score, current level and health meter to top of frame
       	this.currentScore = new ScoreBoard("Score: ");
       	this.currentScore.setForeground(Color.white);
@@ -53,7 +47,7 @@ public class MainApp extends JFrame implements WindowListener {
       	this.currentLevel.setForeground(Color.white);
 	this.healthMeter = new HealthMeter(this.maxHealth);
       	this.healthMeter.setForeground(Color.white);
-      	JPanel panel1 = new JPanel();
+	JPanel panel1 = new JPanel();
       	panel1.setLayout(new FlowLayout(0));
       	panel1.setForeground(Color.white);
       	panel1.add(this.currentScore);
@@ -75,8 +69,11 @@ public class MainApp extends JFrame implements WindowListener {
       	panel2.setForeground(Color.white);
       	this.highScore = new ScoreBoard("Your high-score: ");
       	this.highScore.setForeground(Color.white);
+	this.musicPlayer = new MusicPlayer();
 	panel2.add(this.highScore);
+	panel2.add(this.musicPlayer);
       	this.add(panel2, BorderLayout.PAGE_END);
+
 
 	// add game panel into the middle
       	this.game = new Game(this);
@@ -84,7 +81,6 @@ public class MainApp extends JFrame implements WindowListener {
       	this.game.init();
       	this.game.requestFocus();
       	this.start();
-	this.music();
     }
  
     public static void main(String[] args) {
@@ -123,23 +119,6 @@ public class MainApp extends JFrame implements WindowListener {
     public void windowActivated(WindowEvent e){}
     public void windowDeactivated(WindowEvent e){}
 
-
-    public void music() 
-    {   
-	try {
-	    AudioInputStream bgMusic = AudioSystem.getAudioInputStream(getClass().getClassLoader()
-		.getResource("sound/opening.wav"));
-	    Clip clip = AudioSystem.getClip();
-	    clip.open(bgMusic);
-	    clip.start();
-	} catch (UnsupportedAudioFileException e) {
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	} catch (LineUnavailableException e) {
-	     e.printStackTrace();
-	}
-    }
 
 
 } // MainApp
