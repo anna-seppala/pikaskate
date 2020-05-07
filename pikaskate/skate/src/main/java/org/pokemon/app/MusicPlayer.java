@@ -21,6 +21,7 @@ public class MusicPlayer extends JPanel {
     JButton unmuteB;
     int[] iconSize = {25,25};
     double iconScaling;
+    Clip clip; // background music clip
 
     public MusicPlayer() {
 	this.muteImg = new ImageIcon(getClass().getClassLoader()
@@ -44,13 +45,13 @@ public class MusicPlayer extends JPanel {
 
 	this.muteB.addActionListener(new ActionListener() {
          public void actionPerformed(ActionEvent e) {
-            System.out.println("pushed mute");
+	    clip.stop();
          }          
       });
 
 	this.unmuteB.addActionListener(new ActionListener() {
          public void actionPerformed(ActionEvent e) {
-            System.out.println("pushed unmute");
+	    clip.start();
          }          
       });
 
@@ -66,7 +67,7 @@ public class MusicPlayer extends JPanel {
 	try {
 	    AudioInputStream bgMusic = AudioSystem.getAudioInputStream(getClass().getClassLoader()
 		.getResource(this.songs[0]));
-	    Clip clip = AudioSystem.getClip();
+	    this.clip = AudioSystem.getClip();
 	    clip.open(bgMusic);
 	    clip.start();
 	    clip.loop(Clip.LOOP_CONTINUOUSLY);
