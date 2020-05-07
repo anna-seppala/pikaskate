@@ -48,8 +48,9 @@ public class Obstacle {
     this.y[12] = this.y[12];
     this.x[13] = this.x[10];
     this.y[13] = this.y[12];
-    for (int i = 0; i < lgt; i++)
-      this.z[i] = zPos; 
+    for (int i = 0; i < lgt; i++) {
+	this.z[i] = zPos; 
+    }
   }
   
   public void transform(double paramDouble1, double paramDouble2, int paramInt1, int paramInt2) {
@@ -73,40 +74,41 @@ public class Obstacle {
 	this.collided = collision;
     }
 
+    // paint method to render obstacle
+    public void fill(Graphics g) {
 
-  public void fill(Graphics g) {
-  Color obsColorLight = new Color(71, 214, 158);
-  Color obsColorDark = new Color(8, 76, 9);
-  Color obsColor = new Color(9, 128, 86);
-    if (this.collided) {
-	obsColorLight = new Color(240, 150, 70);
-  	obsColorDark = new Color(140, 50, 5);
-  	obsColor = new Color(180, 80, 25);
+	Color obsColorLight = new Color(71, 214, 158);
+    	Color obsColorDark = new Color(8, 76, 9);
+    	Color obsColor = new Color(9, 128, 86);
+    	if (this.collided) {
+	    obsColorLight = new Color(240, 150, 70);
+	    obsColorDark = new Color(140, 50, 5);
+    	    obsColor = new Color(180, 80, 25);
+    	}
+    	Graphics2D g2d = (Graphics2D) g;
+    	g2d.setColor(obsColorLight);
+    	g2d.fillPolygon(this.polyX, this.polyY, 11);
+    	connect(0, 0);
+    	connect(1, 1);
+    	connect(2, 7);
+    	connect(3, 11);
+    	connect(4, 13);
+    	connect(5, 10);
+    	g2d.setColor(obsColorDark);
+    	g2d.fillPolygon(this.polyX1, this.polyY1, 6);
+    	connect(0, 2);
+    	connect(1, 3);
+    	connect(2, 5);
+    	connect(3, 6);
+    	g2d.setColor(obsColor);
+    	g2d.fillPolygon(this.polyX1, this.polyY1, 4);
+    	connect(0, 10);
+    	connect(1, 13);
+    	connect(2, 12);
+    	connect(3, 9);
+    	g2d.setColor(obsColor);
+    	g2d.fillPolygon(this.polyX1, this.polyY1, 4);
     }
-    Graphics2D g2d = (Graphics2D) g;
-    g2d.setColor(obsColorLight);
-    g2d.fillPolygon(this.polyX, this.polyY, 11);
-    connect(0, 0);
-    connect(1, 1);
-    connect(2, 7);
-    connect(3, 11);
-    connect(4, 13);
-    connect(5, 10);
-    g2d.setColor(obsColorDark);
-    g2d.fillPolygon(this.polyX1, this.polyY1, 6);
-    connect(0, 2);
-    connect(1, 3);
-    connect(2, 5);
-    connect(3, 6);
-    g2d.setColor(obsColor);
-    g2d.fillPolygon(this.polyX1, this.polyY1, 4);
-    connect(0, 10);
-    connect(1, 13);
-    connect(2, 12);
-    connect(3, 9);
-    g2d.setColor(obsColor);
-    g2d.fillPolygon(this.polyX1, this.polyY1, 4);
-  }
   
   // check if one of the edges of player rectangle within obstacle--> collision
   public boolean isCollision(int xPos1, int xPos2, int yPos1, int yPos2) {

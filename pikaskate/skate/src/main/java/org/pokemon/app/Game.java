@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Image;
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -17,8 +18,9 @@ import javax.swing.KeyStroke;
 import javax.swing.JComponent;
 
 public class Game extends JPanel implements Runnable{
-  static int horizon = 26;
+  static int horizon = 26; // z distance from player
   boolean fff;
+  double pi = 3.14159D;
   static double[] sines = new double[75];
   static double[] cosines = new double[75];
   int[] grX;
@@ -46,7 +48,7 @@ public class Game extends JPanel implements Runnable{
   double OX2;
   double OVX;
   int Direction; // of what??
-  int gameMode; // whether demoing or actually playing 1->demo, 0->real game
+  int gameMode; // whether demoing or actually playing  0:real game 1:demo 2:start screen 3: ranking
   boolean startFlag; // whether game has been started
   boolean isContinue;
   boolean registMode;
@@ -59,9 +61,6 @@ public class Game extends JPanel implements Runnable{
   Image myImg0;
   Image img;
   Image[] myImgs;
-  
-  Graphics2D gra;
-  Graphics2D ThisGra;
   
   int level; // game becomes harder by levels
   int maxLevel = 9;
@@ -121,14 +120,10 @@ public class Game extends JPanel implements Runnable{
   }
   
   public void init() {
-
     this.img = createImage(this.width, this.height);
-    this.gra = (Graphics2D) this.img.getGraphics();
-    this.gra.setColor(new Color(48, 11, 142));
-    this.gra.fillRect(0, 0, this.width, this.height);
     for (int i = 0; i < 75; i++) {
-      sines[i] = Math.sin(3.14159D * i / 75.0D / 6.0D);
-      cosines[i] = Math.cos(3.14159D * i / 75.0D / 6.0D);
+      sines[i] = Math.sin(this.pi * i / 75.0D / 6.0D);
+      cosines[i] = Math.cos(this.pi * i / 75.0D / 6.0D);
     } 
     this.grX[2] = this.width;
     this.grY[2] = this.height;
@@ -163,20 +158,94 @@ public class Game extends JPanel implements Runnable{
 	this.gameMode = 0;
   }
  
-  // paint method used to show ranking board. doesn't work yet
-  public void paint(Graphics g) {
+    // paint method to render screen after every round
+    public void paint(Graphics g) {
 	Graphics2D g2d = (Graphics2D) g;
-    if (this.registMode) {
 	super.paint(g);
-      g2d.setColor(Color.lightGray);
-      g2d.fill3DRect(0, 0, this.width, this.height, true);
-      g2d.setColor(Color.black);
-      g2d.drawString("Wait a moment!!", this.centerX - 32, this.centerY + 8);
-      return;
-    } 
-    if (this.img != null)
-      g2d.drawImage(this.img, 0, 0, this); 
-  }
+	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+	switch (this.gameMode) {
+	    case 0: // normal game mode -> paint scene and player
+		g2d.drawImage(this.img, 0, 0, null);
+		g2d.setColor(this.bgColors[this.level]);//colour depends on level
+		g2d.fillRect(0, 0, this.width, this.height);
+
+		g2d.setColor(new Color(230, 187, 196));
+		g2d.fillPolygon(this.grX, this.grY, 4);
+		Obstacle obstacle1 = this.Head;
+		while (obstacle1 != null) {
+		    obstacle1.fill(g2d);
+		    obstacle1 = obstacle1.next;
+		} 
+
+		if (this.damaged == 0) {
+		    // no hits -> normal paint
+		    g2d.drawImage(this.myImg0, new AffineTransform(
+			this.imageScaling,0,0,this.imageScaling,this.centerX-this.playerWidth/2,
+			this.height-this.playerHeight),this);
+		} else{
+		    // hit -> player slips away from image
+		    //this.gra.drawImage(this.myImg0, this.centerX - this.playerWidth, this.height - this.yy + 3 * this.damaged + 8, this);
+		    g2d.drawImage(this.myImg0, new AffineTransform(
+			this.imageScaling,0,0,this.imageScaling,this.centerX-this.playerWidth/2,
+			this.height-this.playerHeight),this);
+		    // show reaction to fall
+		    Font font = new Font("TimesRoman", 1, 32);
+		    String reactionStr = "GAME OVER!";
+		    if (this.health > 0) {
+			reactionStr = "OOPS !!!";
+		    }
+		    int i = g2d.getFontMetrics(font).stringWidth(reactionStr);
+		    int j = this.centerX - i / 2;
+		    g2d.setColor(Color.yellow);
+		    g2d.setFont(font);
+		    g2d.drawString(reactionStr, j, this.centerY - 20);
+		}
+
+		break;
+	    case 1: // demo mode -> paint scene only
+		g2d.drawImage(this.img, 0, 0, null);
+		g2d.setColor(this.bgColors[this.level]);//colour depends on level
+		g2d.fillRect(0, 0, this.width, this.height);
+
+		g2d.setColor(new Color(230, 187, 196));
+		g2d.fillPolygon(this.grX, this.grY, 4);
+		Obstacle obstacle2 = this.Head;
+		while (obstacle2 != null) {
+		    obstacle2.fill(g2d);
+		    obstacle2 = obstacle2.next;
+		}
+
+		int i = g2d.getFontMetrics(this.parent.titleFont)
+		    .stringWidth(this.parent.titleMsg);
+		int j = this.centerX - i / 2;
+		int m = g2d.getFontMetrics(this.parent.normalFont).stringWidth(
+			    this.parent.toStartMsg[this.parent.lang]);
+		int n = this.centerX - m / 2;
+		g2d.setColor(Color.yellow);
+		g2d.setFont(this.parent.titleFont);
+		g2d.drawString(this.parent.titleMsg, j, this.centerY - 20);
+		g2d.setFont(this.parent.normalFont);
+		g2d.setColor(Color.black);
+		g2d.drawString(this.parent.toStartMsg[this.parent.lang], n, this.centerY + 32);
+
+		break;
+	    case 2: // start screen
+    		g2d.setColor(new Color(48, 11, 142));
+    		g2d.fillRect(0, 0, this.width, this.height);
+
+		break;
+	    case 3: // ranking
+		g2d.setColor(Color.lightGray);
+	    	g2d.fill3DRect(0, 0, this.width, this.height, true);
+	    	g2d.setColor(Color.black);
+	    	g2d.drawString("Wait a moment!!", this.centerX - 32, this.centerY + 8);
+		break;
+	    default: // error screen
+		g2d.drawImage(this.img, 0, 0, this); 
+		break;
+	}
+    }
  
 //-------------------------------- Events start:
 
@@ -227,6 +296,7 @@ public class Game extends JPanel implements Runnable{
 		} else {
 		    // if no health, start from beginning and reset health
 		    health = parent.maxHealth;
+		    parent.healthMeter.setHealth(health);
 		}
 		startGame(true);
 	    }
@@ -295,81 +365,62 @@ public class Game extends JPanel implements Runnable{
 
 //-------------------------------- Events end
 
-  // delete all obstacles
-  void clearObstacle() {
-    Obstacle obstacle1 = this.Head;
-    while (obstacle1 != null) {
-      Obstacle obstacle2 = obstacle1.next;
-      this.obstacles.deleteObj(obstacle1);
-      obstacle1 = obstacle2;
-    } 
-    this.Head = null;
-  }
- 
-  // wrapper to start game
-  public void startGame(boolean playNow) {
-    if (this.startFlag) {
-	return; // don't start again if already started
+    // delete all obstacles
+    void clearObstacle() {
+	Obstacle obstacle1 = this.Head;
+	while (obstacle1 != null) {
+	    Obstacle obstacle2 = obstacle1.next;
+	    this.obstacles.deleteObj(obstacle1);
+	    obstacle1 = obstacle2;
+	} 
+	this.Head = null;
     }
-    if (playNow) { // playNow means we put player in game and count score
-      if (this.gameThread != null) {
-	Thread moribund = this.gameThread;
-	this.gameThread.stop();
-        this.gameThread = null;
-	System.out.println("startGame playNow=true: killing thread");
-        moribund.interrupt();
-      }
-      this.startFlag = true;
-      this.gameMode = 0;
-      this.gameThread = new Thread(this);
-      this.gameThread.start();
-    } else {
-	// if playNow == false -> play demo instead of real game
-	if (this.gameMode == 0) {
+ 
+    // wrapper to start game
+    public void startGame(boolean playNow) {
+	if (this.startFlag) {
+	    return; // don't start again if already started
+	}
+	if (playNow) { // playNow means we put player in game and count score
 	    if (this.gameThread != null) {
 		Thread moribund = this.gameThread;
-		//this.gameThread.stop();
-		System.out.println("startGame playNow=false: killing thread");
+		this.gameThread.stop();
 		this.gameThread = null;
+		System.out.println("startGame playNow=true: killing thread");
 		moribund.interrupt();
-	    } 
-	    this.gameMode = 1;
+	    }
+	    this.startFlag = true;
+	    this.gameMode = 0;
 	    this.gameThread = new Thread(this);
 	    this.gameThread.start();
-	}
-    } 
-  }
+	} else {
+	    // if playNow == false -> play demo instead of real game
+	    if (this.gameMode == 0) {
+		if (this.gameThread != null) {
+		    Thread moribund = this.gameThread;
+		    //this.gameThread.stop();
+		    System.out.println("startGame playNow=false: killing thread");
+		    this.gameThread = null;
+		    moribund.interrupt();
+		} 
+		this.gameMode = 1;
+		this.gameThread = new Thread(this);
+		this.gameThread.start();
+	    }
+	} 
+    }
   
-  void gotoRanking() {
-    if (this.hiscore == 0)
-      return; 
-    stop();
-    this.hiscore = 0;
-    this.parent.highScore.setNum(this.hiscore);
-    this.registMode = true;
-    repaint();
-  }
+    void gotoRanking() {
+	stop();
+	this.hiscore = 0;
+	this.parent.highScore.setNum(this.hiscore);
+	this.registMode = true;
+	this.gameMode = 3;
+	repaint();
+    }
  
-  // draw text if hit dustbin
-  void putbomb() {
-    if (this.damaged > 40)
-      return; 
-    if (this.damaged > 4) {
-      Font font = new Font("TimesRoman", 1, 32);
-      String reactionStr = "GAME OVER!";
-      if (this.health >0) {
-	reactionStr = "OOPS !!!";
-      }
-      int i = this.gra.getFontMetrics(font).stringWidth(reactionStr);
-      int j = this.centerX - i / 2;
-      this.gra.setColor(Color.yellow);
-      this.gra.setFont(font);
-      this.gra.drawString(reactionStr, j, this.centerY - 20);
-    } 
-    this.damaged++;
-  }
  
-  // main logic of the game
+    // main logic of the game
     void prt() {
 	// levels change based on score
 	if (this.score > this.clearScore[this.level]) {
@@ -380,8 +431,7 @@ public class Game extends JPanel implements Runnable{
 	    this.maxcount = this.maxcounts[this.level];
 	} 
 	this.imgTimeCounter++;
-	if (this.damaged < 40 && this.gameMode == 0) {
-	    int i;
+	if (this.damaged == 0 && this.gameMode == 0) {
 	    this.myImg0 = this.myImgs[0];
 	    switch (this.imgCounter) {
 		case 0:
@@ -441,7 +491,7 @@ public class Game extends JPanel implements Runnable{
 		    break;
 		default:
 		    break;
-	    } // if damaged < 40 and gameMode == 0
+	    } // if damaged == 0 and gameMode == 0
 	    if (this.score < 200) {
 		this.yy = _h_ - 10 + this.score / 20; 
 	    }
@@ -457,31 +507,18 @@ public class Game extends JPanel implements Runnable{
 	    if (this.vx < -0.4D) { // sharp right
 		this.myImg0 = this.myImgs[9]; 
 	    }
-	    if (this.damaged != 0) { // falling if damaged
+	     
+	} else { 
+	    if (this.damaged == 1) { // image of falling player if damaged
 		this.myImg0 = this.myImgs[12]; 
+		this.imgTimeCounter = 0;
+		this.damaged++; // add 1 to damaged -> do not come back here
 	    }
-	    if (this.damaged == 0) {
-		// no hits -> normal picture
-		this.gra.drawImage(this.myImg0, new AffineTransform(
-		    this.imageScaling,0,0,this.imageScaling,this.centerX-this.playerWidth/2,
-		    this.height-this.playerHeight),this);
-	    } else {
-		if (this.damaged > 4) {
-		    // draw image of falling
-		    this.myImg0 = this.myImgs[13];
-		}
-		//this.gra.drawImage(this.myImg0, this.centerX - this.playerWidth, this.height - this.yy + 3 * this.damaged + 8, this);
-		this.gra.drawImage(this.myImg0, new AffineTransform(
-		    this.imageScaling,0,0,this.imageScaling,this.centerX-this.playerWidth/2,
-		    this.height-this.playerHeight),this);
-	    } 
-	} 
-	if (this.damaged > 0) {
-	    putbomb(); 
+	    if (this.damaged > 0 && this.imgTimeCounter > 4) {
+		// draw image of fallen player
+		this.myImg0 = this.myImgs[13];
+	    }
 	}
-	this.ThisGra.drawImage(this.img, 0, 0, null);
-	this.gra.setColor(this.bgColors[this.level]);//colour depends on level
-	this.gra.fillRect(0, 0, this.width, this.height);
 	if (this.scFlag && this.gameMode == 0) {
 	    this.parent.currentScore.setNum(this.score);
 	    this.parent.currentLevel.setNum(this.level);
@@ -507,16 +544,15 @@ public class Game extends JPanel implements Runnable{
 	    } 
 	} 
 	long l = 40L;
-	if (true) {  //!isSpacePressed --> what does this do?
-	    long l1 = this.prevTime + l - System.currentTimeMillis();
-	    if (l1 <= 0L)
-		l1 = 1L; 
-	    try {
-		Thread.currentThread().sleep(l1);
-	    } catch (Exception exception) {
-		System.out.println("exception in prt(): " + exception);
-	    }
-	} 
+	long l1 = this.prevTime + l - System.currentTimeMillis();
+	if (l1 <= 0L)
+	    l1 = 1L; 
+	try {
+	    Thread.currentThread().sleep(l1);
+	} catch (Exception exception) {
+	    System.out.println("exception in prt(): " + exception);
+	}
+	 
 	this.prevTime = System.currentTimeMillis();
 	if (this.damaged == 0 && this.gameMode == 0) {
 	    if (this.rFlag)
@@ -531,13 +567,15 @@ public class Game extends JPanel implements Runnable{
 	if (!this.lFlag && !this.rFlag) {
 	    if (this.vx < 0.0D) {
 		this.vx += 0.025D;
-	    if (this.vx > 0.0D)
-		this.vx = 0.0D; 
+		if (this.vx > 0.0D) {
+		    this.vx = 0.0D; 
+		}
 	    } 
 	    if (this.vx > 0.0D) {
 		this.vx -= 0.025D;
-		if (this.vx < 0.0D)
+		if (this.vx < 0.0D) {
 		    this.vx = 0.0D; 
+		}
 	    } 
 	} 
     }
@@ -568,7 +606,11 @@ public class Game extends JPanel implements Runnable{
 	    collision = true;
 	    //TODO this won't work because hit obstacles disappear straght away
 	    // Only change colour in play mode (not in demo)
-	    obstacle1.setCollided(collision && (this.gameMode == 0));
+	    if (this.gameMode == 0) {
+		obstacle1.setCollided(collision);
+		this.damaged++;
+	    }
+
 	}
 	// obstacle moves out of sight -> delete + update linked list
         if (obstacle1.prev != null) {
@@ -587,8 +629,9 @@ public class Game extends JPanel implements Runnable{
       double d;
       this.counter = 0;
       obstacle1 = this.obstacles.getObj();
-      if (this.Head != null)
-        this.Head.prev = obstacle1; 
+      if (this.Head != null) {
+	this.Head.prev = obstacle1; 
+      }
       obstacle1.next = this.Head;
       obstacle1.prev = null;
       this.Head = obstacle1;
@@ -642,7 +685,8 @@ public class Game extends JPanel implements Runnable{
         } 
       } else {
         d = Math.random() * 32.0D - 16.0D;
-      } 
+      }
+      // add new obstacle to game scene at location d
       obstacle1.init(d, horizon);
     } 
     int i = (int)(Math.abs(this.vx) * 80.0D);
@@ -657,139 +701,93 @@ public class Game extends JPanel implements Runnable{
     d1 = -d3 * 26.0D + 2.0D;
     this.grX[1] = this.width;
     this.grY[1] = (int)(d1 * d2) + this.centerY;
-    this.gra.setColor(new Color(230, 187, 196));
-    this.gra.fillPolygon(this.grX, this.grY, 4);
     obstacle1 = this.Head;
     while (obstacle1 != null) {
       obstacle1.transform(d4, d3, this.centerX, this.centerY);
-      obstacle1.fill(this.gra);
       obstacle1 = obstacle1.next;
     } 
+
     return collision;
   }
   
-  void putExtra() {}
- 
-  // main state machine of game
-  public void run() {
-    Thread thisThread = Thread.currentThread(); // added to try get rid of Thread.stop
-    this.ThisGra = (Graphics2D) getGraphics();
-    System.gc(); // garbage collector (not guaranteed to work)
-    if (this.gameMode > 0) {
-      demo();
-      return;
-    } 
-    clearObstacle();
-    this.damaged = 0;
-    this.counter = 0;
-    this.level = 0;
-    this.score = 0;
-    this.vx = 0.0D;
-    if (this.isContinue) {
-	for (; this.hiscore >= this.clearScore[this.level]; this.level++); 
-    }
-    if (this.level > 0) {
-	this.score = this.clearScore[this.level - 1] - 1000; 
-    }
-    this.maxcount = this.maxcounts[this.level];
-    while (!moveObstacle() && (thisThread == this.gameThread)) { // until collision happens
-	prt();
-    }
-    // breaking from while means collision took place: decrease health
-    this.health--;
-    if (this.health < 0) {
-	this.health = 0;
-    }
-    this.score_ = this.score;
-    this.damaged = 1;
-    for (int i = 1; i < 24; i++) {
-      moveObstacle();
-      prt();
-    } 
-    if (this.score_ > this.hiscore) {
-      this.hiscore = this.score_;
-      //if (this.parent.userid != null && !this.parent.userid.equals("guest"))
-      //  try {
-      //    URL uRL = new URL("/applets/hiscore/hs_main.htmp?name=" + URLEncoder.encode(this.parent.userid) + "&high=" + this.hiscore + "&sorMax=" + '\n' + "&userfile=" + "pokemon");
-      //    URLConnection uRLConnection = uRL.openConnection();
-      //    int i = 2000;
-      //    byte[] arrayOfByte = new byte[i];
-      //    InputStream inputStream = uRLConnection.getInputStream();
-      //    String str = "";
-      //    while (true) {
-      //      int j = inputStream.read(arrayOfByte);
-      //      if (j != -1) {
-      //        if (j > i)
-      //          j = i; 
-      //        str = str + new String(arrayOfByte, 0, 0, j);
-      //        Thread.currentThread().yield();
-      //        continue;
-      //      } 
-      //      break;
-      //    } 
-      //  } catch (Exception exception) {
-      //    System.out.println("High Score write Error\n" + exception);
-      //  }  
-    }
-    // update scoreboard and health
-    this.parent.highScore.setNum(this.hiscore);
-    this.parent.healthMeter.setHealth(this.health);
-    this.startFlag = false;
-    this.gameMode = 1;
-    try {
-      Thread.currentThread().sleep(3000L);
-    } catch (InterruptedException interruptedException) {
-	System.out.println("exception in run(): " + interruptedException);
-    }
-    demo();
-  }
+    void putExtra() {}
 
-  // demo shown before game starts (movin dustbins without pikachu)
-  void demo() {
-    this.gameMode = 2;
-    clearObstacle();
-    this.damaged = 0;
-    this.counter = 0;
-    this.level = 0;
-    this.score = 0;
-    this.vx = 0.0D;
-    this.maxcount = 5;
-    Font font1 = new Font("TimesRoman", 1, 24);
-    Font font2 = new Font("TimesRoman", 1, 12);
-    String str1 = "Pikachu Skate Revived";
-    int i = this.gra.getFontMetrics(font1).stringWidth(str1);
-    int j = this.centerX - i / 2;
-    int m = this.gra.getFontMetrics(font2).stringWidth(
-	    this.parent.contMsg[this.parent.lang]);
-    int n = this.centerX - m / 2;
-    int k = this.gra.getFontMetrics(font2).stringWidth(
-	    this.parent.toStartMsg[this.parent.lang]);
-    int l = this.centerX - k / 2;
-    while (true) {
-      prt();
-      moveObstacle();
-      this.gra.setColor(Color.yellow);
-      this.gra.setFont(font1);
-      this.gra.drawString(str1, j, this.centerY - 20);
-      this.gra.setFont(font2);
-      this.gra.setColor(Color.black);
-      this.gra.drawString(this.parent.toStartMsg[this.parent.lang], l, this.centerY + 32);
-      //if (this.mouseX > m && this.mouseX < m + k && 
-      //  this.mouseY > this.centerY + 74 && this.mouseY < this.centerY + 90) {
-      //  this.gra.setColor(Color.blue);
-      //  this.isInPage = true;
-      //} else {
-      //  this.isInPage = false;
-      //} 
-      if (this.hiscore >= this.clearScore[0]) {
-        this.gra.setColor(Color.black);
-        this.gra.drawString(this.parent.contMsg[this.parent.lang], n, this.centerY + 64);
-      } 
-      if (!this.isFocus) {
-        this.gra.setColor(Color.yellow);
-        this.gra.drawString(this.parent.clickMsg[this.parent.lang], this.centerX - 20, this.centerY);
-      } 
-      this.score = 0;
-    } 
-  }
+    void reset() {
+	// clear stats
+	clearObstacle();
+    	this.damaged = 0;
+    	this.counter = 0;
+    	this.level = 0;
+    	this.score = 0;
+    	this.vx = 0.0D;
+	if (this.gameMode > 0) {
+	    // demo -> set correct gameMode
+	    this.gameMode = 1;
+    	    this.maxcount = 5;
+	} else {
+	    // real game -> check whether continuing or starting over
+    	    if (this.isContinue) {
+    	        for (; this.hiscore >= this.clearScore[this.level]; this.level++); 
+    	    }
+    	    if (this.level > 0) {
+    	        this.score = this.clearScore[this.level - 1] - 1000; 
+    	    }
+    	    this.maxcount = this.maxcounts[this.level];
+	}
+    }
+
+
+    public void run() {
+	Thread thisThread = Thread.currentThread(); // added to try get rid of Thread.stop
+	System.gc(); // garbage collector (not guaranteed to work)
+	reset();
+	if (this.gameMode > 0) {
+	    while(true) {
+		demo();
+		repaint();
+	    }
+	} else { 
+	    while (!moveObstacle() && (thisThread == this.gameThread)) { // until collision happens
+		prt();
+		repaint();
+	    }
+	    // breaking from while means collision took place: decrease health
+	    this.health--;
+	    if (this.health < 0) {
+		this.health = 0;
+	    }
+	    this.score_ = this.score;
+	    for (int i = 1; i < 50; i++) {
+		moveObstacle();
+		prt();
+		repaint();
+		//System.out.println("after hitting");
+	    } 
+	    if (this.score_ > this.hiscore) {
+		this.hiscore = this.score_;
+	    }
+	    // update scoreboard and health
+	    this.parent.highScore.setNum(this.hiscore);
+	    this.parent.healthMeter.setHealth(this.health);
+	    this.startFlag = false;
+	    this.gameMode = 1;
+	    try {
+		// pause before going from collision to demo
+		Thread.currentThread().sleep(1L);
+	    } catch (InterruptedException interruptedException) {
+		System.out.println("exception in run(): " + interruptedException);
+	    }
+	    while (true) {
+		demo();
+		repaint();
+	    }
+	}
+    }
+
+    // demo shown before game starts -> don't count score
+    void demo() {
+	moveObstacle();
+	prt();
+	this.score = 0;
+    }
 }

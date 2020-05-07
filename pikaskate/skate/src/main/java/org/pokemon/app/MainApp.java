@@ -10,6 +10,7 @@ import java.awt.FlowLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import java.awt.Font;
 
 public class MainApp extends JFrame implements WindowListener {
     Game game;
@@ -20,9 +21,12 @@ public class MainApp extends JFrame implements WindowListener {
     int maxHealth = 3;
     String userid;
     int lang = 0; //TODO implement language options
+    // Text and formatting:
+    Font titleFont = new Font("TimesRoman", 1, 24);
+    Font normalFont = new Font("TimesRoman", 1, 12);
+    String titleMsg = "Pikachu Skate Revived";
     String[] contMsg = { "Hit [C] to continue from last stage", " " };
     String[] toStartMsg = { "Hit SPACE to start", " " };
-    String[] clickMsg = { " ", " " };
     // set images now before any threads are started (could lead to error?)
     
     public MainApp () {
@@ -87,6 +91,7 @@ public class MainApp extends JFrame implements WindowListener {
 
     public void start() {
 	this.game.startGame(false); 
+	this.game.gameMode = 2;
     }
     
     public void stop() {
