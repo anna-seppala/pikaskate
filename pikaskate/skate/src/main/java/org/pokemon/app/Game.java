@@ -220,6 +220,14 @@ public class Game extends JPanel implements Runnable{
 	    System.out.println("hit SPACE");
 	    isContinue = false;
 	    if (!startFlag) {
+		//TODO points acting weirdly id isContinue (both hitting space and C)
+		// if health  left, continue from highest reached level
+		if (health > 0 && level > 0) {
+		    isContinue = true;
+		} else {
+		    // if no health, start from beginning and reset health
+		    health = parent.maxHealth;
+		}
 		startGame(true);
 	    }
         }
@@ -348,12 +356,15 @@ public class Game extends JPanel implements Runnable{
       return; 
     if (this.damaged > 4) {
       Font font = new Font("TimesRoman", 1, 32);
-      String str = "OOPS !!!";
-      int i = this.gra.getFontMetrics(font).stringWidth(str);
+      String reactionStr = "GAME OVER!";
+      if (this.health >0) {
+	reactionStr = "OOPS !!!";
+      }
+      int i = this.gra.getFontMetrics(font).stringWidth(reactionStr);
       int j = this.centerX - i / 2;
       this.gra.setColor(Color.yellow);
       this.gra.setFont(font);
-      this.gra.drawString(str, j, this.centerY - 20);
+      this.gra.drawString(reactionStr, j, this.centerY - 20);
     } 
     this.damaged++;
   }
@@ -684,6 +695,11 @@ public class Game extends JPanel implements Runnable{
     while (!moveObstacle() && (thisThread == this.gameThread)) { // until collision happens
 	prt();
     }
+    // breaking from while means collision took place: decrease health
+    this.health--;
+    if (this.health < 0) {
+	this.health = 0;
+    }
     this.score_ = this.score;
     this.damaged = 1;
     for (int i = 1; i < 24; i++) {
@@ -717,10 +733,6 @@ public class Game extends JPanel implements Runnable{
     }
     // update scoreboard and health
     this.parent.highScore.setNum(this.hiscore);
-    this.health--;
-    if (this.health < 0) {
-	this.health = 0;
-    }
     this.parent.healthMeter.setHealth(this.health);
     this.startFlag = false;
     this.gameMode = 1;
