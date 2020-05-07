@@ -222,7 +222,7 @@ public class Game extends JPanel implements Runnable{
 	    if (!startFlag) {
 		//TODO points acting weirdly id isContinue (both hitting space and C)
 		// if health  left, continue from highest reached level
-		if (health > 0 && level > 0) {
+		if (health > 0) {
 		    isContinue = true;
 		} else {
 		    // if no health, start from beginning and reset health
@@ -674,7 +674,7 @@ public class Game extends JPanel implements Runnable{
   public void run() {
     Thread thisThread = Thread.currentThread(); // added to try get rid of Thread.stop
     this.ThisGra = (Graphics2D) getGraphics();
-    System.gc();
+    System.gc(); // garbage collector (not guaranteed to work)
     if (this.gameMode > 0) {
       demo();
       return;
