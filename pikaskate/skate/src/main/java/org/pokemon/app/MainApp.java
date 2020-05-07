@@ -27,6 +27,7 @@ public class MainApp extends JFrame implements WindowListener {
     String titleMsg = "Pikachu Skate Revived";
     String[] contMsg = { "Hit [C] to continue from last stage", " " };
     String[] toStartMsg = { "Hit SPACE to start", " " };
+    String[] rankingMsg = { "Hall of Fame", " " };
     // set images now before any threads are started (could lead to error?)
     
     public MainApp () {

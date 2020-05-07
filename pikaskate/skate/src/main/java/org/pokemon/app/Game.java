@@ -51,7 +51,6 @@ public class Game extends JPanel implements Runnable{
   int gameMode; // whether demoing or actually playing  0:real game 1:demo 2:start screen 3: ranking
   boolean startFlag; // whether game has been started
   boolean isContinue;
-  boolean registMode;
   int width;
   int height;
   int centerX;
@@ -94,7 +93,6 @@ public class Game extends JPanel implements Runnable{
     this.obstacles = new Freeobj(64); // create obstacles
     this.startFlag = false;
     this.isContinue = false;
-    this.registMode = false;
 				// 8000
     this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
     this.bgColors = 
@@ -148,15 +146,6 @@ public class Game extends JPanel implements Runnable{
     this.playerHeight = (int) (this.imageScaling * ((double) this.imageSize[1]));
   }
   
-    public void stop() {
-	if (this.gameThread != null)
-	//this.gameThread.stop();
-	System.out.println("stop(): killing thread");
-	this.gameThread = null;
-	this.startFlag = false;
-	this.registMode = false;
-	this.gameMode = 0;
-  }
  
     // paint method to render screen after every round
     public void paint(Graphics g) {
@@ -236,10 +225,18 @@ public class Game extends JPanel implements Runnable{
 
 		break;
 	    case 3: // ranking
+		int k = g2d.getFontMetrics(this.parent.titleFont).stringWidth(
+			    this.parent.rankingMsg[this.parent.lang]);
+		int l = this.centerX - k / 2;
 		g2d.setColor(Color.lightGray);
 	    	g2d.fill3DRect(0, 0, this.width, this.height, true);
 	    	g2d.setColor(Color.black);
-	    	g2d.drawString("Wait a moment!!", this.centerX - 32, this.centerY + 8);
+		g2d.setFont(this.parent.titleFont);
+	    	g2d.drawString(this.parent.rankingMsg[this.parent.lang], l, this.centerY - 90);
+		g2d.setFont(this.parent.normalFont);
+	    	g2d.drawString("name                          score", l, this.centerY - 60);
+	    	g2d.drawString("------------------------------------", l, this.centerY - 55);
+	    	g2d.drawString("hit SPACE to continue playing", 2, this.height -4);
 		break;
 	    default: // error screen
 		g2d.drawImage(this.img, 0, 0, this); 
@@ -256,11 +253,11 @@ public class Game extends JPanel implements Runnable{
 	    .put(KeyStroke.getKeyStroke("SPACE"), "spacePressAction");
 	this.getActionMap()
 	    .put("spacePressAction", spacePressAction);
-	// c press to continue at reached level
-	this.getInputMap()
-	    .put(KeyStroke.getKeyStroke("C"), "cPressAction");
-	this.getActionMap()
-	    .put("cPressAction", cPressAction);
+	//// c press to continue at reached level
+	//this.getInputMap()
+	//    .put(KeyStroke.getKeyStroke("C"), "cPressAction");
+	//this.getActionMap()
+	//    .put("cPressAction", cPressAction);
 	// s press to see current ranking 
 	this.getInputMap()
 	    .put(KeyStroke.getKeyStroke("S"), "sPressAction");
@@ -337,7 +334,7 @@ public class Game extends JPanel implements Runnable{
         {
             String command = (String) ae.getActionCommand();
             if (command.equals(commands[0])) { //TODO implement UP
-		stop();
+		//stop();
 	    }
             else if (command.equals(commands[1])) { //TODO implement DOWN
 	    }
@@ -409,12 +406,21 @@ public class Game extends JPanel implements Runnable{
 	    }
 	} 
     }
-  
+
+      public void stop() {
+	if (this.gameThread != null)
+	System.out.println("stop(): killing thread");
+	Thread moribund = this.gameThread;
+	this.gameThread = null;
+	moribund.interrupt();
+	this.startFlag = false;
+	this.gameMode = 0;
+  }
+
     void gotoRanking() {
-	stop();
 	this.hiscore = 0;
 	this.parent.highScore.setNum(this.hiscore);
-	this.registMode = true;
+	this.isContinue = false;
 	this.gameMode = 3;
 	repaint();
     }
