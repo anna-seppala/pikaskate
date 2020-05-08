@@ -7,6 +7,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
@@ -37,7 +38,11 @@ public class MainApp extends JFrame implements WindowListener {
 	this.setSize(520, 500); //TODO use this.pack() instead
       	this.setVisible(true);
       	this.addWindowListener(this);
-      	this.userid = "Sk8erB0i";
+	// query computer screen size and place main window in middle of screen
+	Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	this.setLocation(dim.width/2-this.getSize().width/2,
+		dim.height/2-this.getSize().height/2);
+	this.userid = "Sk8erB0i";
       	this.setLayout(new BorderLayout());
 
 	//Set current score, current level and health meter to top of frame

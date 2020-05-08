@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 
 public class Obstacle {
   static double T = 0.6D;
@@ -110,15 +111,31 @@ public class Obstacle {
     	g2d.fillPolygon(this.polyX1, this.polyY1, 4);
     }
   
-  // check if one of the edges of player rectangle within obstacle--> collision
-  public boolean isCollision(int xPos1, int xPos2, int yPos1, int yPos2) {
-    Polygon polygon = new Polygon(this.polyX, this.polyY, lgt);
-    if (polygon.contains(xPos1, yPos1) || polygon.contains(xPos1, yPos2) || 
-      polygon.contains(xPos2, yPos1) || polygon.contains(xPos2, yPos2)) {
+    // check if one of the edges of player rectangle within obstacle--> collision
+    public boolean isCollision(int xPos1, int xPos2, int yPos1, int yPos2) {
+	Polygon polygon = new Polygon(this.polyX, this.polyY, this.lgt);
+	if (polygon.contains(xPos1, yPos1) || polygon.contains(xPos1, yPos2) || 
+	polygon.contains(xPos2, yPos1) || polygon.contains(xPos2, yPos2)) {
+	    return true;
+	}
+	return false;
+    }
+    
+    // check if obstacle outside of a rectangle (outside of containing Jpanel)
+    // TODO ugly solution, there has to be a better way to confine objects to jpanel
+    public boolean isInside(int xUpperLeft, int yUpperLeft, int width, int height) {
+	Rectangle rectangle = new Rectangle(xUpperLeft, yUpperLeft, width, height);
+	int outPoints = 0;
+	for (int i = 0; i<this.lgt; i++) {
+	    if (!rectangle.contains(this.polyX[i], this.polyY[i])) {
+		outPoints++;
+	    }
+	} // if around half of obstacle out of JPanel, not inside
+	if (outPoints > (this.lgt/2 - 1)) {
+	    return false;
+	}
 	return true;
-      }
-    return false;
-  }
+    }
 
 } // Obstacle class
 

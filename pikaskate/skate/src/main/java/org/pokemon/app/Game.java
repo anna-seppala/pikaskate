@@ -37,9 +37,9 @@ public class Game extends JPanel implements Runnable{
   
   int counter;
   int maxcount;
-  int score;
-  int score_;
-  int hiscore;
+  int runningScore; // used to get score when game running
+  int savedScore; // save score here after collision (score changes in demo)
+  int highScore;
   int Counter;
   int imgCounter; // toggle player movement images with this counter
   int imgTimeCounter; // track time to correctly show movement images
@@ -83,6 +83,7 @@ public class Game extends JPanel implements Runnable{
     //set container size and find center point
     this.width = 480;
     this.height = 300;
+    this.setBounds(0,0,this.width,this.height);
     this.centerX = this.width / 2;
     this.centerY = this.height / 2;
 
@@ -148,9 +149,9 @@ public class Game extends JPanel implements Runnable{
   
  
     // paint method to render screen after every round
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
 	Graphics2D g2d = (Graphics2D) g;
-	super.paint(g);
+	super.paintComponent(g);
 	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 	switch (this.gameMode) {
@@ -163,7 +164,9 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.grX, this.grY, 4);
 		Obstacle obstacle1 = this.Head;
 		while (obstacle1 != null) {
-		    obstacle1.fill(g2d);
+		    if (obstacle1.isInside(0,0,this.width, this.height)) {
+			obstacle1.fill(g2d);
+		    }
 		    obstacle1 = obstacle1.next;
 		} 
 
@@ -201,7 +204,9 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.grX, this.grY, 4);
 		Obstacle obstacle2 = this.Head;
 		while (obstacle2 != null) {
-		    obstacle2.fill(g2d);
+		    if (obstacle2.isInside(0,0,this.width, this.height)) {
+			obstacle2.fill(g2d);
+		    }
 		    obstacle2 = obstacle2.next;
 		}
 
@@ -236,7 +241,7 @@ public class Game extends JPanel implements Runnable{
 		g2d.setFont(this.parent.normalFont);
 	    	g2d.drawString("name                          score", l, this.centerY - 60);
 	    	g2d.drawString("------------------------------------", l, this.centerY - 55);
-	    	g2d.drawString("hit SPACE to continue playing", 2, this.height -4);
+	    	g2d.drawString("Hit SPACE to continue playing", 2, this.height -4);
 		break;
 	    default: // error screen
 		g2d.drawImage(this.img, 0, 0, this); 
@@ -271,10 +276,8 @@ public class Game extends JPanel implements Runnable{
 
 	// arrow key events
 	for (int i = 0; i < commands.length; i++) { 
-	    // arrow key presses
 	    registerKeyboardAction(arrowPressAction, commands[i], KeyStroke
 		.getKeyStroke(commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
-	    // arrow key releases
 	    registerKeyboardAction(arrowReleaseAction, commands[i], KeyStroke
 		.getKeyStroke("released " + commands[i]), JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
@@ -303,7 +306,7 @@ public class Game extends JPanel implements Runnable{
     Action sPressAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
 	    System.out.println("hit S");
-	    if (!startFlag && hiscore != 0) {
+	    if (!startFlag && highScore != 0) {
 		gotoRanking();
 	    }
         }
@@ -418,8 +421,8 @@ public class Game extends JPanel implements Runnable{
   }
 
     void gotoRanking() {
-	this.hiscore = 0;
-	this.parent.highScore.setNum(this.hiscore);
+	this.highScore = 0;
+	this.parent.highScore.setNum(this.highScore);
 	this.isContinue = false;
 	this.gameMode = 3;
 	repaint();
@@ -429,7 +432,7 @@ public class Game extends JPanel implements Runnable{
     // main logic of the game
     void prt() {
 	// levels change based on score
-	if (this.score > this.clearScore[this.level]) {
+	if (this.runningScore > this.clearScore[this.level] && this.gameMode == 0) {
 	    this.level++;
 	    if (this.level > this.maxLevel) {
 		this.level = this.maxLevel; // keep playing at max level
@@ -498,8 +501,8 @@ public class Game extends JPanel implements Runnable{
 		default:
 		    break;
 	    } // if damaged == 0 and gameMode == 0
-	    if (this.score < 200) {
-		this.yy = _h_ - 10 + this.score / 20; 
+	    if (this.runningScore < 200) {
+		this.yy = _h_ - 10 + this.runningScore / 20; 
 	    }
 	    if (this.vx > 0.2D) { // left
 		this.myImg0 = this.myImgs[10]; 
@@ -526,7 +529,7 @@ public class Game extends JPanel implements Runnable{
 	    }
 	}
 	if (this.scFlag && this.gameMode == 0) {
-	    this.parent.currentScore.setNum(this.score);
+	    this.parent.currentScore.setNum(this.runningScore);
 	    this.parent.currentLevel.setNum(this.level);
 	    this.scFlag = false;
 	} else {
@@ -535,7 +538,7 @@ public class Game extends JPanel implements Runnable{
 	// compute current score
 	if (this.damaged == 0) {
 	    long l1;
-	    this.score++;
+	    this.runningScore++;
 	    if (this.prevTime != 0L) {
 		l1 = 55L - System.currentTimeMillis() - this.prevTime;
 	    } else {
@@ -544,9 +547,9 @@ public class Game extends JPanel implements Runnable{
 	    if (l1 < 0L) {
 		l1 = 1L;
 		if (l1 > -40L)
-		    this.score += (int)((40L + l1) / 4L); 
+		    this.runningScore += (int)((40L + l1) / 4L); 
 	    } else {
-		this.score += 5;
+		this.runningScore += 5;
 	    } 
 	} 
 	long l = 40L;
@@ -606,8 +609,8 @@ public class Game extends JPanel implements Runnable{
         int xMin = this.centerX - this.playerWidth/2;
         int xMax = xMin + this.playerWidth/2;
 	//TODO: set yposition right!
-        int yMin = this.height - this.yy;
-        int yMax = yMin + 35;
+        int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
+        int yMax = this.height;
         if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
 	    collision = true;
 	    //TODO this won't work because hit obstacles disappear straght away
@@ -724,7 +727,7 @@ public class Game extends JPanel implements Runnable{
     	this.damaged = 0;
     	this.counter = 0;
     	this.level = 0;
-    	this.score = 0;
+    	this.runningScore = 0;
     	this.vx = 0.0D;
 	if (this.gameMode > 0) {
 	    // demo -> set correct gameMode
@@ -733,10 +736,10 @@ public class Game extends JPanel implements Runnable{
 	} else {
 	    // real game -> check whether continuing or starting over
     	    if (this.isContinue) {
-    	        for (; this.hiscore >= this.clearScore[this.level]; this.level++); 
+    	        for (; this.savedScore >= this.clearScore[this.level]; this.level++); 
     	    }
     	    if (this.level > 0) {
-    	        this.score = this.clearScore[this.level - 1] - 1000; 
+    	        this.runningScore = this.clearScore[this.level - 1]; 
     	    }
     	    this.maxcount = this.maxcounts[this.level];
 	}
@@ -762,18 +765,18 @@ public class Game extends JPanel implements Runnable{
 	    if (this.health < 0) {
 		this.health = 0;
 	    }
-	    this.score_ = this.score;
+	    this.savedScore = this.runningScore;
 	    for (int i = 1; i < 50; i++) {
 		moveObstacle();
 		prt();
 		repaint();
 		//System.out.println("after hitting");
 	    } 
-	    if (this.score_ > this.hiscore) {
-		this.hiscore = this.score_;
+	    if (this.runningScore > this.highScore) {
+		this.highScore = this.savedScore;
 	    }
 	    // update scoreboard and health
-	    this.parent.highScore.setNum(this.hiscore);
+	    this.parent.highScore.setNum(this.highScore);
 	    this.parent.healthMeter.setHealth(this.health);
 	    this.startFlag = false;
 	    this.gameMode = 1;
@@ -794,6 +797,6 @@ public class Game extends JPanel implements Runnable{
     void demo() {
 	moveObstacle();
 	prt();
-	this.score = 0;
+	this.runningScore = 0;
     }
 }
