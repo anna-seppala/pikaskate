@@ -28,10 +28,12 @@ public class Game extends JPanel implements Runnable{
     int yy;
     Obstacle Head; // first obstacle in double-linked list
     Freeobj obstacles; // double-linked list of obstacles
-    double vx;
     int playerWidth;
     int playerHeight;
     double[] playerVelocity; // in world frame
+    double xSpeedIncr; // player speed gain in x when pushing arrow keys
+    double xSpeedMax; // player max speed in x
+    double xSpeedDecay; // player speed decay when not pressing arrow key
     double imageScaling;  // make sure player image always same size
     int[] imageSize;  // original size of player images in width,height
     
@@ -85,6 +87,9 @@ public class Game extends JPanel implements Runnable{
     
 	this.playerWidth = 50; // used to detect collision and scale player icon
 	this.playerVelocity = new double[]{0,0,1}; // only moving in z (towards horizon)
+	this.xSpeedIncr = 0.11;
+	this.xSpeedMax = 0.6;
+	this.xSpeedDecay = 0.025;
 
 	this.fff = true;
 	this.groundX = new int[4];
@@ -489,16 +494,16 @@ public class Game extends JPanel implements Runnable{
 	    if (this.runningScore < 200) {
 		this.yy = _h_ - 10 + this.runningScore / 20; 
 	    }
-	    if (this.vx > 0.2D) { // left
+	    if (this.playerVelocity[0] > 0.2D) { // left
 		this.myImg0 = this.myImgs[10]; 
 	    }
-	    if (this.vx > 0.4D) { // sharp left
+	    if (this.playerVelocity[0] > 0.4D) { // sharp left
 		this.myImg0 = this.myImgs[11]; 
 	    }
-	    if (this.vx < -0.2D) { // right
+	    if (this.playerVelocity[0] < -0.2D) { // right
 		this.myImg0 = this.myImgs[8]; 
 	    }
-	    if (this.vx < -0.4D) { // sharp right
+	    if (this.playerVelocity[0] < -0.4D) { // sharp right
 		this.myImg0 = this.myImgs[9]; 
 	    }
 	     
@@ -549,26 +554,30 @@ public class Game extends JPanel implements Runnable{
 	 
 	this.prevTime = System.currentTimeMillis();
 	if (this.damaged == 0 && this.gameMode == 0) {
-	    if (this.rFlag)
-		this.vx -= 0.11D; 
-	    if (this.lFlag)
-		this.vx += 0.11D; 
-	    if (this.vx < -0.6D)
-		this.vx = -0.6D; 
-	    if (this.vx > 0.6D)
-		this.vx = 0.6D; 
+	    if (this.rFlag) {
+		this.playerVelocity[0] -= this.xSpeedIncr; 
+	    }
+	    if (this.lFlag) {
+		this.playerVelocity[0] += this.xSpeedIncr; 
+	    }
+	    if (this.playerVelocity[0] < -this.xSpeedMax) {
+		this.playerVelocity[0] = -this.xSpeedMax; 
+	    }
+	    if (this.playerVelocity[0] > this.xSpeedMax) {
+		this.playerVelocity[0] = this.xSpeedMax; 
+	    }
 	} 
 	if (!this.lFlag && !this.rFlag) {
-	    if (this.vx < 0.0D) {
-		this.vx += 0.025D;
-		if (this.vx > 0.0D) {
-		    this.vx = 0.0D; 
+	    if (this.playerVelocity[0] < 0.0D) {
+		this.playerVelocity[0] += this.xSpeedDecay;
+		if (this.playerVelocity[0] > 0.0D) {
+		    this.playerVelocity[0] = 0.0D; 
 		}
 	    } 
-	    if (this.vx > 0.0D) {
-		this.vx -= 0.025D;
-		if (this.vx < 0.0D) {
-		    this.vx = 0.0D; 
+	    if (this.playerVelocity[0] > 0.0D) {
+		this.playerVelocity[0] -= this.xSpeedDecay;
+		if (this.playerVelocity[0] < 0.0D) {
+		    this.playerVelocity[0] = 0.0D; 
 		}
 	    } 
 	} 
@@ -587,7 +596,7 @@ public class Game extends JPanel implements Runnable{
 	while (obstacle1 != null) {
 	    for (int i = 0; i < obstacle1.lgt; i++) { // z movement of obs in player
 		obstacle1.z[i] -= playerVelocity[2]*1;	// frame for 1 time step 
-		obstacle1.x[i] += this.vx*1; // obstacle movement in x for 1 time step
+		obstacle1.x[i] += this.playerVelocity[0]*1; // obstacle movement in x for 1 time step
 	    } 
 	    Obstacle obstacle2 = obstacle1.next;
 	    // is obstacle at the front (risk of collision)?
@@ -633,19 +642,18 @@ public class Game extends JPanel implements Runnable{
 	    this.Head = obstacle1;
 	    //d = Math.random() * 32.0D - 16.0D;
 	    d = Math.random() * 44.0D - 22.0D;
-	    System.out.println(d);
 	    // add new obstacle to game scene at location d
 	    obstacle1.init(d, horizon);
 	}
 	// cosine and sine of player's tilt angle (depends on x velocity?)
-	double sine = Math.sin(this.maxTilt * (-this.vx));
-	double cosine = Math.cos(this.maxTilt * this.vx);
+	double sine = Math.sin(this.maxTilt * (-this.playerVelocity[0]));
+	double cosine = Math.cos(this.maxTilt * this.playerVelocity[0]);
 
-	double d2 = 120.0D / (1.0D + Obstacle.T * horizon);
-	double d1 = -sine * -26.0D + 2.0D;
+	double d2 = 120.0D / (1.0D + Obstacle.T * this.horizon);
+	double d1 = -sine * -this.horizon + 2.0D;
 	this.groundX[0] = 0;
 	this.groundY[0] = (int)(d1 * d2) + this.centerY;
-	d1 = -sine * 26.0D + 2.0D;
+	d1 = -sine * this.horizon + 2.0D;
 	this.groundX[1] = this.width;
 	this.groundY[1] = (int)(d1 * d2) + this.centerY;
 	obstacle1 = this.Head;
@@ -666,7 +674,7 @@ public class Game extends JPanel implements Runnable{
     	this.counter = 0;
     	this.level = 0;
     	this.runningScore = 0;
-    	this.vx = 0.0D;
+    	this.playerVelocity[0] = 0.0D;
 	if (this.gameMode > 0) {
 	    // demo -> set correct gameMode
 	    this.gameMode = 1;
