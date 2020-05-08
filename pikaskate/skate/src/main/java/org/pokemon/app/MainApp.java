@@ -25,8 +25,10 @@ public class MainApp extends JFrame implements WindowListener {
     String userid;
     int lang = 0; //TODO implement language options
     // Text and formatting:
+    Font reactionFont = new Font("TimesRoman", 1, 32);
     Font titleFont = new Font("TimesRoman", 1, 24);
     Font normalFont = new Font("TimesRoman", 1, 12);
+    String[] reactionMsg = {"OOPS!!!", "GAME OVER!"};
     String titleMsg = "Pikachu Skate Revived";
     String[] contMsg = { "Hit [C] to continue from last stage", " " };
     String[] toStartMsg = { "Hit SPACE to start", " " };

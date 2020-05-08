@@ -182,15 +182,15 @@ public class Game extends JPanel implements Runnable{
 			this.imageScaling,0,0,this.imageScaling,this.centerX-this.playerWidth/2,
 			this.height-this.playerHeight),this);
 		    // show reaction to fall
-		    Font font = new Font("TimesRoman", 1, 32);
-		    String reactionStr = "GAME OVER!";
+		    String reactionStr = this.parent.reactionMsg[1];
 		    if (this.health > 0) {
-			reactionStr = "OOPS !!!";
+			reactionStr = this.parent.reactionMsg[0];
 		    }
-		    int i = g2d.getFontMetrics(font).stringWidth(reactionStr);
+		    int i = g2d.getFontMetrics(this.parent.reactionFont)
+			.stringWidth(reactionStr);
 		    int j = this.centerX - i / 2;
 		    g2d.setColor(Color.yellow);
-		    g2d.setFont(font);
+		    g2d.setFont(this.parent.reactionFont);
 		    g2d.drawString(reactionStr, j, this.centerY - 20);
 		}
 
