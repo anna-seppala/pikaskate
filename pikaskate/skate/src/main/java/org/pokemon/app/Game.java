@@ -18,134 +18,122 @@ import javax.swing.KeyStroke;
 import javax.swing.JComponent;
 
 public class Game extends JPanel implements Runnable{
-  static int horizon = 26; // z distance from player
-  boolean fff;
-  double pi = 3.14159D;
-  static double[] sines = new double[75];
-  static double[] cosines = new double[75];
-  int[] grX;
-  int[] grY;
-  static int _h_ = 76;
-  int yy;
-  Obstacle Head; // first obstacle in double-linked list
-  Freeobj obstacles; // double-linked list of obstacles
-  double vx;
-  int playerWidth;
-  int playerHeight;
-  double imageScaling;  // make sure player image always same size
-  int[] imageSize;  // original size of player images in width,height
-  
-  int counter;
-  int maxcount;
-  int runningScore; // used to get score when game running
-  int savedScore; // save score here after collision (score changes in demo)
-  int highScore;
-  int Counter;
-  int imgCounter; // toggle player movement images with this counter
-  int imgTimeCounter; // track time to correctly show movement images
-  int WCounter;
-  double OX1;
-  double OX2;
-  double OVX;
-  int Direction; // of what??
-  int gameMode; // whether demoing or actually playing  0:real game 1:demo 2:start screen 3: ranking
-  boolean startFlag; // whether game has been started
-  boolean isContinue;
-  int width;
-  int height;
-  int centerX;
-  int centerY;
-  
-  private volatile Thread gameThread;
-  Image myImg0;
-  Image img;
-  Image[] myImgs;
-  
-  int level; // game becomes harder by levels
-  int maxLevel = 9;
-  int[] clearScore; // array showing which number of points starts new level
-  Color[] bgColors; //colour of background (changes by level)
-  int[] maxcounts;
-  boolean rFlag; // whether palyer pressed right arrow
-  boolean lFlag; // whether palyer pressed left arrow
-  private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
+    static int horizon = 26; // z distance from player
+    boolean fff;
+    double pi = 3.14159D;
+    double maxTilt; // how many radians the world tilts when steering left/right
+    int[] groundX; // define polygon representing ground X
+    int[] groundY; // define polygon representing ground Y
+    static int _h_ = 76;
+    int yy;
+    Obstacle Head; // first obstacle in double-linked list
+    Freeobj obstacles; // double-linked list of obstacles
+    double vx;
+    int playerWidth;
+    int playerHeight;
+    double[] playerVelocity; // in world frame
+    double imageScaling;  // make sure player image always same size
+    int[] imageSize;  // original size of player images in width,height
+    
+    int counter;
+    int maxcount;
+    int runningScore; // used to get score when game running
+    int savedScore; //put score here after collision (score changes even in demo)
+    int highScore;
+    int imgCounter; // toggle player movement images with this counter
+    int imgTimeCounter; // track time to correctly show movement images
+    int Direction; // of what??
+    int gameMode; // whether demoing or actually playing  0:real game 1:demo 2:start screen 3: ranking
+    boolean startFlag; // whether game has been started
+    boolean isContinue; // whether start from beginning or continuing after fall
+    int width; // JPanel width
+    int height; // JPanel height
+    int centerX; // JPanel center x pos
+    int centerY; // JPanel center y pos
+    
+    private volatile Thread gameThread;
+    Image myImg0; // image currently used to paint player
+    Image[] myImgs; // all player images to choose from
+    
+    int level; // game becomes harder by levels
+    int maxLevel = 9;
+    int[] clearScore; // array showing which number of points starts new level
+    Color[] bgColors; //colour of background (changes by level)
+    int[] maxcounts;
+    boolean rFlag; // whether palyer pressed right arrow
+    boolean lFlag; // whether palyer pressed left arrow
+    private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
+    
+    MainApp parent; // connection to parent to set score, quit game etc.
+    boolean isFocus;
+    boolean isFocus2;
+    boolean scFlag;
+    long prevTime;
+    int damaged; // TODO join damaged and health?
+    int health;
 
-  MainApp parent; // connection to parent to set score, quit game etc.
-  boolean isFocus;
-  boolean isFocus2;
-  boolean scFlag;
-  long prevTime;
-  int damaged; // TODO join damaged and health?
-  int health;
 
   // constructor
-  public Game(MainApp paramMain) {
-    //set container size and find center point
-    this.width = 480;
-    this.height = 300;
-    this.setBounds(0,0,this.width,this.height);
-    this.centerX = this.width / 2;
-    this.centerY = this.height / 2;
+    public Game(MainApp paramMain) {
+	//set container size and find center point
+	this.maxTilt = this.pi/6D; //allow world to tilt 30 degreed 
+	this.width = 480;
+	this.height = 300;
+	this.setBounds(0,0,this.width,this.height);
+	this.centerX = this.width / 2;
+	this.centerY = this.height / 2;
+    
+	this.playerWidth = 50; // used to detect collision and scale player icon
+	this.playerVelocity = new double[]{0,0,1}; // only moving in z (towards horizon)
 
-    this.fff = true;
-    this.grX = new int[4];
-    this.grY = new int[4];
-    this.yy = _h_;
-    this.obstacles = new Freeobj(64); // create obstacles
-    this.startFlag = false;
-    this.isContinue = false;
+	this.fff = true;
+	this.groundX = new int[4];
+	this.groundY = new int[4];
+	this.yy = _h_;
+	this.obstacles = new Freeobj(64); // create obstacles
+	this.startFlag = false;
+	this.isContinue = false;
 				// 8000
-    this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200, 25400, 40000, 9999999 };
-    this.bgColors = 
-      new Color[] { new Color(48, 11, 142), 
-        new Color(48, 11, 160), 
-        new Color(48, 11, 172), 
-        new Color(48, 11, 182), 
-        new Color(48, 11, 182), 
-        new Color(48, 11, 192), 
-        new Color(48, 11, 202), 
-        new Color(48, 11, 212), 
-        new Color(48, 11, 222), 
+	this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200,25400, 40000, 9999999 };
+	this.bgColors = new Color[] { new Color(48, 11, 142), 
+        new Color(48, 11, 160), new Color(48, 11, 172), 
+        new Color(48, 11, 182), new Color(48, 11, 182), 
+        new Color(48, 11, 192), new Color(48, 11, 202), 
+        new Color(48, 11, 212), new Color(48, 11, 222), 
         new Color(48, 11, 242) };
-    this.maxcounts = new int[] {4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-    this.rFlag = false;
-    this.lFlag = false;
-    this.isFocus = true;
-    this.isFocus2 = true;
-    this.scFlag = true;
-    this.parent = paramMain;
-    this.health = parent.maxHealth;
-    setKeyBindings();
-  }
-  
-  public void init() {
-    this.img = createImage(this.width, this.height);
-    for (int i = 0; i < 75; i++) {
-      sines[i] = Math.sin(this.pi * i / 75.0D / 6.0D);
-      cosines[i] = Math.cos(this.pi * i / 75.0D / 6.0D);
-    } 
-    this.grX[2] = this.width;
-    this.grY[2] = this.height;
-    this.grX[3] = 0;
-    this.grY[3] = this.height;
-    // open images
-    myImgs = new Image[14];
-    for (int i=0; i<this.myImgs.length; i++) {
-	try {
-	    this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
-		    .getResource("img/img"+String.valueOf(i+1)+".png" ));
-	} catch (IOException e) {
-	    System.out.println("error in init() when loading images: " +e);
-	}
+	this.maxcounts = new int[] {4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+	this.rFlag = false;
+	this.lFlag = false;
+	this.isFocus = true;
+	this.isFocus2 = true;
+	this.scFlag = true;
+	this.parent = paramMain;
+	this.health = parent.maxHealth;
+	setKeyBindings();
     }
-    // assuming all images have same size:
-    this.imageSize = new int[2]; 
-    this.imageSize[0] = this.myImgs[0].getWidth(null);
-    this.imageSize[1] = this.myImgs[0].getHeight(null);
-    this.playerWidth = 50;
-    this.imageScaling = ((double) this.playerWidth)/((double) this.imageSize[0]);
-    this.playerHeight = (int) (this.imageScaling * ((double) this.imageSize[1]));
-  }
+  
+    public void init() {
+	this.groundX[2] = this.width;
+	this.groundY[2] = this.height;
+	this.groundX[3] = 0;
+	this.groundY[3] = this.height;
+	// open images
+	myImgs = new Image[14];
+	for (int i=0; i<this.myImgs.length; i++) {
+	    try {
+		this.myImgs[i] = ImageIO.read(getClass().getClassLoader()
+			.getResource("img/img"+String.valueOf(i+1)+".png" ));
+	    } catch (IOException e) {
+		System.out.println("error in init() when loading images: " +e);
+	    }
+	}
+	// assuming all images have same size:
+	this.imageSize = new int[2]; 
+	this.imageSize[0] = this.myImgs[0].getWidth(null);
+	this.imageSize[1] = this.myImgs[0].getHeight(null);
+	this.imageScaling = ((double) this.playerWidth)/((double) this.imageSize[0]);
+	this.playerHeight = (int) (this.imageScaling * ((double) this.imageSize[1]));
+    }
   
  
     // paint method to render screen after every round
@@ -156,12 +144,11 @@ public class Game extends JPanel implements Runnable{
 				RenderingHints.VALUE_ANTIALIAS_ON);
 	switch (this.gameMode) {
 	    case 0: // normal game mode -> paint scene and player
-		g2d.drawImage(this.img, 0, 0, null);
 		g2d.setColor(this.bgColors[this.level]);//colour depends on level
 		g2d.fillRect(0, 0, this.width, this.height);
 
 		g2d.setColor(new Color(230, 187, 196));
-		g2d.fillPolygon(this.grX, this.grY, 4);
+		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle1 = this.Head;
 		while (obstacle1 != null) {
 		    if (obstacle1.isInside(0,0,this.width, this.height)) {
@@ -195,13 +182,12 @@ public class Game extends JPanel implements Runnable{
 		}
 
 		break;
-	    case 1: // demo mode -> paint scene only
-		g2d.drawImage(this.img, 0, 0, null);
+	    case 1: // demo mode -> paint scene+obstacles only
 		g2d.setColor(this.bgColors[this.level]);//colour depends on level
 		g2d.fillRect(0, 0, this.width, this.height);
 
 		g2d.setColor(new Color(230, 187, 196));
-		g2d.fillPolygon(this.grX, this.grY, 4);
+		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle2 = this.Head;
 		while (obstacle2 != null) {
 		    if (obstacle2.isInside(0,0,this.width, this.height)) {
@@ -243,8 +229,7 @@ public class Game extends JPanel implements Runnable{
 	    	g2d.drawString("------------------------------------", l, this.centerY - 55);
 	    	g2d.drawString("Hit SPACE to continue playing", 2, this.height -4);
 		break;
-	    default: // error screen
-		g2d.drawImage(this.img, 0, 0, this); 
+	    default: // error screen ?
 		break;
 	}
     }
@@ -589,135 +574,88 @@ public class Game extends JPanel implements Runnable{
 	} 
     }
 
-  // define how obstacles behave in the game
-  // returns true if player hit obstacle, false otherwise
-  boolean moveObstacle() {
-    boolean collision = false;
-    double d5 = 0.8D; // what is this for??
-    if (this.level >= this.maxLevel-1) {
-	d5 = 0.8D; 
-    }
-    Obstacle obstacle1 = this.Head;
-    while (obstacle1 != null) {
-      Obstacle obstacle2 = obstacle1.next;
-      for (int i = 0; i < Obstacle.lgt; i++) {
-        obstacle1.z[i] -= 1.0D; // speed at which obstacles move??
-        obstacle1.x[i] += this.vx;
-      } 
-      // is obstacle at the front (risk of collision)?
-      if (obstacle1.z[0] <= 1.3D) {
-        int xMin = this.centerX - this.playerWidth/2;
-        int xMax = xMin + this.playerWidth/2;
-	//TODO: set yposition right!
-        int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
-        int yMax = this.height;
-        if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
-	    collision = true;
-	    //TODO this won't work because hit obstacles disappear straght away
-	    // Only change colour in play mode (not in demo)
-	    if (this.gameMode == 0) {
-		obstacle1.setCollided(collision);
-		this.damaged++;
+    // define how obstacles behave in the game
+    // returns true if player hit obstacle, false otherwise
+    boolean moveObstacles() {
+	boolean collision = false;
+	double d5 = 0.8D; // what is this for??
+	if (this.level >= this.maxLevel-1) {
+	    d5 = 0.8D; 
+	}
+	// for each obstacle, move in z and x (z negative towards screen)
+	Obstacle obstacle1 = this.Head;
+	while (obstacle1 != null) {
+	    for (int i = 0; i < obstacle1.lgt; i++) { // z movement of obs in player
+		obstacle1.z[i] -= playerVelocity[2]*1;	// frame for 1 time step 
+		obstacle1.x[i] += this.vx*1; // obstacle movement in x for 1 time step
+	    } 
+	    Obstacle obstacle2 = obstacle1.next;
+	    // is obstacle at the front (risk of collision)?
+	    if (obstacle1.z[0] <= 1.3D) {
+		int xMin = this.centerX - this.playerWidth/2;
+		int xMax = xMin + this.playerWidth/2;
+		//TODO: set yposition right!
+		int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
+		int yMax = this.height;
+		if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
+		    collision = true;
+		    //TODO this won't work because hit obstacles disappear straght away
+		    // Only change colour in play mode (not in demo)
+		    if (this.gameMode == 0) {
+			obstacle1.setCollided(collision);
+			this.damaged++;
+		    }
+
+		}
+		// obstacle moves out of sight -> delete + update linked list
+		if (obstacle1.prev != null) {
+		    obstacle1.prev.next = obstacle1.next;
+		}
+		if (obstacle1.next != null) {
+		    obstacle1.next.prev = obstacle1.prev; 
+		}
+		this.obstacles.deleteObj(obstacle1);
+		obstacle1 = obstacle2;
+	    } 
+	    obstacle1 = obstacle2;
+	} 
+	this.counter++; // what counter??
+	if (this.counter >= this.maxcount) {
+	    double d = 0;
+	    this.counter = 0;
+	    // take first element of obstacles and prepend it to current Head
+	    obstacle1 = this.obstacles.getObj();
+	    if (this.Head != null) {
+		this.Head.prev = obstacle1; 
 	    }
+	    obstacle1.next = this.Head;
+	    obstacle1.prev = null;
+	    this.Head = obstacle1;
+	    //d = Math.random() * 32.0D - 16.0D;
+	    d = Math.random() * 44.0D - 22.0D;
+	    System.out.println(d);
+	    // add new obstacle to game scene at location d
+	    obstacle1.init(d, horizon);
+	}
+	// cosine and sine of player's tilt angle (depends on x velocity?)
+	double sine = Math.sin(this.maxTilt * (-this.vx));
+	double cosine = Math.cos(this.maxTilt * this.vx);
 
-	}
-	// obstacle moves out of sight -> delete + update linked list
-        if (obstacle1.prev != null) {
-          obstacle1.prev.next = obstacle1.next;
-	}
-        if (obstacle1.next != null) {
-          obstacle1.next.prev = obstacle1.prev; 
-	}
-        this.obstacles.deleteObj(obstacle1);
-        obstacle1 = obstacle2;
-      } 
-      obstacle1 = obstacle2;
-    } 
-    this.counter++;
-    if (this.counter >= this.maxcount) {
-      double d;
-      this.counter = 0;
-      obstacle1 = this.obstacles.getObj();
-      if (this.Head != null) {
-	this.Head.prev = obstacle1; 
-      }
-      obstacle1.next = this.Head;
-      obstacle1.prev = null;
-      this.Head = obstacle1;
-      if (this.level >= this.maxLevel-1) {
-        this.Counter--;
-        this.OX1 += this.vx;
-        this.OX2 += this.vx;
-        if (this.level >= this.maxLevel && this.Counter % 13 < 7) {
-          d5 = 0.8D;
-          d = Math.random() * 32.0D - 16.0D;
-          if (d < this.OX2 && d > this.OX1) {
-            d5 = 0.8D;
-            if (Math.random() > 0.5D) {
-              d = this.OX1;
-            } else {
-              d = this.OX2;
-            } 
-          } 
-        } else if (this.Counter % 2 == 0) {
-          d = this.OX1;
-        } else {
-          d = this.OX2;
-        } 
-        if (this.OX2 - this.OX1 > 9.0D) {
-          this.OX1 += 0.6D;
-          this.OX2 -= 0.6D;
-          if (this.OX2 - this.OX1 > 10.0D)
-            d5 = 0.8D; 
-        } else if (this.OX1 > 18.0D) {
-          this.OX2 -= 0.6D;
-          this.OX1 -= 0.6D;
-        } else if (this.OX2 < -18.0D) {
-          this.OX2 += 0.6D;
-          this.OX1 += 0.6D;
-        } else {
-          if (this.Counter < 0) {
-            this.Direction = -this.Direction;
-            this.Counter += 2 * (int)(Math.random() * 8.0D + 4.0D);
-          } 
-          if (this.Direction > 0) {
-            this.OVX += 0.125D;
-          } else {
-            this.OVX -= 0.125D;
-          } 
-          if (this.OVX > 0.7D)
-            this.OVX = 0.7D; 
-          if (this.OVX < -0.7D)
-            this.OVX = -0.7D; 
-          this.OX1 += this.OVX;
-          this.OX2 += this.OVX;
-        } 
-      } else {
-        d = Math.random() * 32.0D - 16.0D;
-      }
-      // add new obstacle to game scene at location d
-      obstacle1.init(d, horizon);
-    } 
-    int i = (int)(Math.abs(this.vx) * 80.0D);
-    double d3 = sines[i];
-    double d4 = cosines[i];
-    if (this.vx > 0.0D)
-      d3 = -d3; 
-    double d2 = 120.0D / (1.0D + Obstacle.T * horizon);
-    double d1 = -d3 * -26.0D + 2.0D;
-    this.grX[0] = 0;
-    this.grY[0] = (int)(d1 * d2) + this.centerY;
-    d1 = -d3 * 26.0D + 2.0D;
-    this.grX[1] = this.width;
-    this.grY[1] = (int)(d1 * d2) + this.centerY;
-    obstacle1 = this.Head;
-    while (obstacle1 != null) {
-      obstacle1.transform(d4, d3, this.centerX, this.centerY);
-      obstacle1 = obstacle1.next;
-    } 
+	double d2 = 120.0D / (1.0D + Obstacle.T * horizon);
+	double d1 = -sine * -26.0D + 2.0D;
+	this.groundX[0] = 0;
+	this.groundY[0] = (int)(d1 * d2) + this.centerY;
+	d1 = -sine * 26.0D + 2.0D;
+	this.groundX[1] = this.width;
+	this.groundY[1] = (int)(d1 * d2) + this.centerY;
+	obstacle1 = this.Head;
+	while (obstacle1 != null) {
+	    obstacle1.transform(cosine, sine, this.centerX, this.centerY);
+	    obstacle1 = obstacle1.next;
+	} 
 
-    return collision;
-  }
+	return collision;
+    }
   
     void putExtra() {}
 
@@ -756,7 +694,7 @@ public class Game extends JPanel implements Runnable{
 		repaint();
 	    }
 	} else { 
-	    while (!moveObstacle() && (thisThread == this.gameThread)) { // until collision happens
+	    while (!moveObstacles() && (thisThread == this.gameThread)) { // until collision happens
 		prt();
 		repaint();
 	    }
@@ -767,7 +705,7 @@ public class Game extends JPanel implements Runnable{
 	    }
 	    this.savedScore = this.runningScore;
 	    for (int i = 1; i < 50; i++) {
-		moveObstacle();
+		moveObstacles();
 		prt();
 		repaint();
 		//System.out.println("after hitting");
@@ -795,7 +733,7 @@ public class Game extends JPanel implements Runnable{
 
     // demo shown before game starts -> don't count score
     void demo() {
-	moveObstacle();
+	moveObstacles();
 	prt();
 	this.runningScore = 0;
     }
