@@ -22,13 +22,14 @@ public class Game extends JPanel implements Runnable{
     int horizonY; // how high in y horizon is seen on screen
     boolean fff;
     double pi = 3.14159D;
-    double maxTilt; // how many radians the world tilts when steering left/right
+    double maxTilt; // how many rad the world tilts when steering left/right
     int[] groundX; // define polygon representing ground X
     int[] groundY; // define polygon representing ground Y
     static int _h_ = 76;
     int yy;
     Obstacle Head; // first obstacle in double-linked list
     Freeobj obstacles; // double-linked list of obstacles
+    double collisionRange; // z distance from player where collision can occur
     int playerWidth;
     int playerHeight;
     double[] playerVelocity; // in world frame
@@ -160,9 +161,7 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle1 = this.Head;
 		while (obstacle1 != null) {
-		    if (obstacle1.isInside(0,0,this.width, this.height)) {
-			obstacle1.fill(g2d);
-		    }
+		    obstacle1.fill(g2d);
 		    obstacle1 = obstacle1.next;
 		} 
 
@@ -199,9 +198,7 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle2 = this.Head;
 		while (obstacle2 != null) {
-		    if (obstacle2.isInside(0,0,this.width, this.height)) {
-			obstacle2.fill(g2d);
-		    }
+		    obstacle2.fill(g2d);
 		    obstacle2 = obstacle2.next;
 		}
 
@@ -591,10 +588,6 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObstacles() {
 	boolean collision = false;
-	double d5 = 0.8D; // what is this for??
-	if (this.level >= this.maxLevel-1) {
-	    d5 = 0.8D; 
-	}
 	// for each obstacle, move in z and x (z negative towards screen)
 	Obstacle obstacle1 = this.Head;
 	while (obstacle1 != null) {
@@ -604,7 +597,7 @@ public class Game extends JPanel implements Runnable{
 	    } 
 	    Obstacle obstacle2 = obstacle1.next;
 	    // is obstacle at the front (risk of collision)?
-	    if (obstacle1.z[0] <= 1.3D) {
+	    if (obstacle1.z[0] <= this.collisionRange) {
 		int xMin = this.centerX - this.playerWidth/2;
 		int xMax = xMin + this.playerWidth/2;
 		//TODO: set yposition right!
@@ -620,7 +613,10 @@ public class Game extends JPanel implements Runnable{
 		    }
 
 		}
-		// obstacle moves out of sight -> delete + update linked list
+	    }
+	    // obstacle moves out of sight -> delete + update linked list
+	    if ((obstacle1.z[0] <= 0.45D) 
+		    || !obstacle1.isInside(0,0,this.width, this.height)) {
 		if (obstacle1.prev != null) {
 		    obstacle1.prev.next = obstacle1.next;
 		}
@@ -629,11 +625,13 @@ public class Game extends JPanel implements Runnable{
 		}
 		this.obstacles.deleteObj(obstacle1);
 		obstacle1 = obstacle2;
-	    } 
+	    }
 	    obstacle1 = obstacle2;
+	   
 	} 
 	this.counter++; // what counter??
 	if (this.counter >= this.maxcount) {
+	//if (this.counter >= this.maxcount) {
 	    double d = 0;
 	    this.counter = 0;
 	    // take first element of obstacles and prepend it to current Head
@@ -661,7 +659,7 @@ public class Game extends JPanel implements Runnable{
 	this.groundY[1] = (int) (-(tan)*(double)this.width/2.0D) + this.horizonY;
 	obstacle1 = this.Head;
 	while (obstacle1 != null) { // transform obstacles to tilt with horizon
-	    obstacle1.transform(cosine, sine, this.centerX, this.centerY);
+	    obstacle1.transform(cosine, sine, this.centerX, this.horizonY);
 	    obstacle1 = obstacle1.next;
 	} 
 

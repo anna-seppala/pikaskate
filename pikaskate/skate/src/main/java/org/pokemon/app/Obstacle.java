@@ -55,7 +55,7 @@ public class Obstacle {
   }
   
   public void transform(double cosine, double sine, int sceneCenterX, int sceneCenterY) {
-    double d = 120.0D / (1.0D + T * this.z[0]);
+    double d = 150.0D / (1.0D + this.z[0]);
     for (int i = 0; i < lgt; i++) {
       double d1 = cosine * this.x[i] + sine * this.y[i];
       double d2 = -sine * this.x[i] + cosine * this.y[i];
