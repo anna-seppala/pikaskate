@@ -656,9 +656,9 @@ public class Game extends JPanel implements Runnable{
 	// tilting about (centerX,horizonY)
 	// determine y pos of tilted horizon (one corner sinks, one rises)
 	this.groundX[0] = 0;
-	this.groundY[0] = (int) ((tan)*(double)this.centerX) + this.horizonY;
+	this.groundY[0] = (int) ((tan)*(double)this.width/2.0D) + this.horizonY;
 	this.groundX[1] = this.width;
-	this.groundY[1] = (int) (-(tan)*(double)this.centerX) + this.horizonY;
+	this.groundY[1] = (int) (-(tan)*(double)this.width/2.0D) + this.horizonY;
 	obstacle1 = this.Head;
 	while (obstacle1 != null) { // transform obstacles to tilt with horizon
 	    obstacle1.transform(cosine, sine, this.centerX, this.centerY);
