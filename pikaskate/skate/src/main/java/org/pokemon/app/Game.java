@@ -654,7 +654,7 @@ public class Game extends JPanel implements Runnable{
 	double cosine = Math.cos(this.maxTilt * this.playerVelocity[0]);
 	double tan = Math.tan(this.maxTilt * (-this.playerVelocity[0]));
 	// tilting about (centerX,horizonY)
-	// determine y pos of tilted horizon (one cortner sinks, one rises)
+	// determine y pos of tilted horizon (one corner sinks, one rises)
 	this.groundX[0] = 0;
 	this.groundY[0] = (int) ((tan)*(double)this.centerX) + this.horizonY;
 	this.groundX[1] = this.width;
