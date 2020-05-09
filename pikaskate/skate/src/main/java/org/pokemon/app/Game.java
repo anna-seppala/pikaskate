@@ -647,10 +647,9 @@ public class Game extends JPanel implements Runnable{
 	    // add new obstacle to game scene at location d
 	    obstacle1.init(d, horizon);
 	}
-	// cosine and sine of player's tilt angle (depends on x velocity?)
-	double sine = Math.sin(this.maxTilt * (-this.playerVelocity[0]));
-	double cosine = Math.cos(this.maxTilt * this.playerVelocity[0]);
-	double tan = Math.tan(this.maxTilt * (-this.playerVelocity[0]));
+	// tan of player's tilt angle (depends on x velocity)
+	double angle = this.maxTilt * this.playerVelocity[0];
+	double tan = Math.tan(-angle);
 	// tilting about (centerX,horizonY)
 	// determine y pos of tilted horizon (one corner sinks, one rises)
 	this.groundX[0] = 0;
@@ -659,7 +658,7 @@ public class Game extends JPanel implements Runnable{
 	this.groundY[1] = (int) (-(tan)*(double)this.width/2.0D) + this.horizonY;
 	obstacle1 = this.Head;
 	while (obstacle1 != null) { // transform obstacles to tilt with horizon
-	    obstacle1.transform(cosine, sine, this.centerX, this.horizonY);
+	    obstacle1.transform(angle, this.centerX, this.horizonY);
 	    obstacle1 = obstacle1.next;
 	} 
 
