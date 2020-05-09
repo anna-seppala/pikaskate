@@ -150,6 +150,7 @@ public class Obstacle {
 
     public void deactivate() {
 	this.active = false;
+	this.collided = false;
     }
 
 } // Obstacle class

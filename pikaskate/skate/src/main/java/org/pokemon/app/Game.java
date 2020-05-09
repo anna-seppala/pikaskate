@@ -28,7 +28,6 @@ public class Game extends JPanel implements Runnable{
     static int _h_ = 76;
     int yy;
 
-    Obstacle Head; // first obstacle in double-linked list
     Freeobj obstacles; // double-linked list of obstacles
     static int maxObstacles = 70; // how many obstacles are created
     int[] maxObstaclesLevel; // how many obstacles can exist per level
@@ -64,6 +63,7 @@ public class Game extends JPanel implements Runnable{
     
     int level; // game becomes harder by levels
     int maxLevel = 9;
+    int rounds; // how many rounds (loops) played
     int[] clearScore; // array showing which number of points starts new level
     Color[] bgColors; //colour of background (changes by level)
     boolean rFlag; // whether palyer pressed right arrow
@@ -107,11 +107,6 @@ public class Game extends JPanel implements Runnable{
 	this.fff = true;
 	this.yy = _h_;
 	this.obstacles = new Freeobj(this.maxObstacles); // create obstacles
-	this.Head = obstacles.getHead();
-	if (this.Head == null ) {
-	    System.out.println("still null");
-	}
-	System.out.println("have obbst");
 	this.startFlag = false;
 	this.isContinue = false;
 				// 8000
@@ -122,7 +117,7 @@ public class Game extends JPanel implements Runnable{
         new Color(48, 11, 192), new Color(48, 11, 202), 
         new Color(48, 11, 212), new Color(48, 11, 222), 
         new Color(48, 11, 242) };
-	this.maxObstaclesLevel = new int[] {4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+	this.maxObstaclesLevel = new int[] {65, 20, 22, 25, 30, 35, 40, 2, 1, 1, 1, 1 };
 	this.rFlag = false;
 	this.lFlag = false;
 	this.isFocus = true;
@@ -166,7 +161,7 @@ public class Game extends JPanel implements Runnable{
 
 		g2d.setColor(new Color(230, 187, 196));
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
-		Obstacle obstacle1 = this.Head;
+		Obstacle obstacle1 = this.obstacles.getHead();
 		while (obstacle1 != null) {
 		    if (obstacle1.isActive()) {
 			    obstacle1.fill(g2d);
@@ -205,7 +200,7 @@ public class Game extends JPanel implements Runnable{
 
 		g2d.setColor(new Color(230, 187, 196));
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
-		Obstacle obstacle2 = this.Head;
+		Obstacle obstacle2 = this.obstacles.getHead();
 		while (obstacle2 != null) {
 		    if (obstacle2.isActive()) {
 			obstacle2.fill(g2d);
@@ -370,6 +365,7 @@ public class Game extends JPanel implements Runnable{
     // delete all obstacles
     void clearObstacles() {
 	obstacles.deactivateAll();
+	this.obstacleCounter = 0;
     }
  
     // wrapper to start game
@@ -427,7 +423,7 @@ public class Game extends JPanel implements Runnable{
  
     // main logic of the game
     void prt() {
-	System.out.println("prt");
+	this.rounds++;
 	// levels change based on score
 	if (this.runningScore > this.clearScore[this.level] && this.gameMode == 0) {
 	    this.level++;
@@ -593,31 +589,31 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObstacles() {
 	boolean collision = false;
-	System.out.println("obstacleCounter: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
-	Obstacle obstacle1 = this.Head;
-	while (obstacle1 != null) {
-	    obstacle1.z -= playerVelocity[2]*1;// obs z movement (player frame)
-	    for (int i = 0; i < obstacle1.lgt; i++) { 
-		// shift obstacles by how much player moves in x
-		obstacle1.x[i] += this.playerVelocity[0]*1; 
-	    }
-	    // is obstacle at the front (risk of collision)?
-	    if (obstacle1.z <= this.collisionRange) {
-		int xMin = this.centerX - this.playerWidth/2;
-		int xMax = xMin + this.playerWidth/2;
-		//TODO: set yposition right!
-		int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
-		int yMax = this.height;
-		if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
-		    collision = true;
-		    //TODO this won't work because same obstacles rotated??
-		    // Only change colour in play mode (not in demo)
-		    if (this.gameMode == 0) {
-			obstacle1.setCollided(collision);
-			this.damaged++;
+	Obstacle obstacle1 = this.obstacles.getHead();
+	while ((obstacle1 != null)) {
+		if (obstacle1.isActive()) {
+		obstacle1.z -= playerVelocity[2]*1;// obs z movement (player frame)
+		for (int i = 0; i < obstacle1.lgt; i++) { 
+		    // shift obstacles by how much player moves in x
+		    obstacle1.x[i] += this.playerVelocity[0]*1; 
+		}
+		// is obstacle at the front (risk of collision)?
+		if (obstacle1.z <= this.collisionRange) {
+		    int xMin = this.centerX - this.playerWidth/2;
+		    int xMax = xMin + this.playerWidth/2;
+		    //TODO: set yposition right!
+		    int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
+		    int yMax = this.height;
+		    if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
+			collision = true;
+			//TODO this won't work because same obstacles rotated??
+			// Only change colour in play mode (not in demo)
+			if (this.gameMode == 0) {
+			    obstacle1.setCollided(collision);
+			    this.damaged++;
+			}
 		    }
-
 		}
 	    }
 	    // obstacle moves out of sight -> delete + update linked list
@@ -626,20 +622,15 @@ public class Game extends JPanel implements Runnable{
 		    && obstacle1.isActive()) {
 		obstacle1.deactivate();
 		this.obstacleCounter--; // remove deleted obstacle of total
-		System.out.println("deactivated obstacle");
 	    }
 	    obstacle1 = obstacle1.next;
 	   
 	} 
-	if (this.obstacleCounter < this.maxObstaclesLevel[this.level]) {
-	System.out.println("trying to create");
-	//if (this.counter >= this.maxcount) {
-	    double d = 0;
-	    // take first element of obstacles and prepend it to current Head
-	    d = Math.random() * 44.0D - 22.0D;
+	if ((this.rounds % obstacles.creationDelay == 0) 
+	    && (this.obstacleCounter < this.maxObstaclesLevel[this.level])) {
+	    double d = Math.random() * 44.0D - 22.0D;
 	    if (obstacles.activateObstacle(d,horizon)) {
 		this.obstacleCounter++; // add new object to number of existing ones
-		System.out.println("activated obstacle");
 	    }
 	}
 	// tan of player's tilt angle (depends on x velocity)
@@ -651,7 +642,7 @@ public class Game extends JPanel implements Runnable{
 	this.groundY[0] = (int) ((tan)*(double)this.width/2.0D) + this.horizonY;
 	this.groundX[1] = this.width;
 	this.groundY[1] = (int) (-(tan)*(double)this.width/2.0D) + this.horizonY;
-	obstacle1 = this.Head;
+	obstacle1 = this.obstacles.getHead();
 	while (obstacle1 != null) { // transform obstacles to tilt with horizon
 	    obstacle1.transform(angle, this.centerX, this.horizonY);
 	    obstacle1 = obstacle1.next;
@@ -660,14 +651,13 @@ public class Game extends JPanel implements Runnable{
 	return collision;
     }
   
-    void putExtra() {}
-
     void reset() {
 	// clear stats
 	clearObstacles();
     	this.damaged = 0;
     	this.obstacleCounter = 0;
     	this.level = 0;
+	this.rounds = 0;
     	this.runningScore = 0;
     	this.playerVelocity[0] = 0.0D;
 	if (this.gameMode > 0) {

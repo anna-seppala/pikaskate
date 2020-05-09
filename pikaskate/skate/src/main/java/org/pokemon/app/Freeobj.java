@@ -2,7 +2,8 @@ package org.pokemon.app;
 
 public class Freeobj {
     Obstacle head;
-  
+    public int creationDelay = 4; // how many rounds before creating new object 
+
     public Freeobj(int numberObstacles) {
 	for (int i = 0; i < numberObstacles; i++) {
 	    Obstacle obstacle1 = new Obstacle();
@@ -49,8 +50,9 @@ public class Freeobj {
 		    obstacle1.next = this.head;
 		    this.head.prev = obstacle1;
 		    this.head = obstacle1;
+		    this.head.prev = null;
 		}
-		return true;
+		return obstacle1.isActive();
 	    }
 	obstacle1 = obstacle1.next;
 	}
