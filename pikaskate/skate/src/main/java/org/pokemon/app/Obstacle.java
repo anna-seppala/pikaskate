@@ -13,12 +13,13 @@ public class Obstacle {
   int[] polyY = new int[lgt]; // y position of plygon points
   int[] polyX1 = new int[6];  // Additional shape to create shadows
   int[] polyY1 = new int[6];  //       -- .. --
-  public double[] x = new double[lgt];
-  public double[] y = new double[lgt];
-  public double[] z = new double[lgt];
+  public double[] x = new double[lgt]; // these hold the orig non-transformed
+  public double[] y = new double[lgt]; // polygon points
+  public double z; // distance from player
   boolean collided = false; // track whether this object has collided with player;
   public Obstacle next;
   public Obstacle prev; 
+  boolean active = false; // is obstacle on scene or not
   
   void init(double xPos, double zPos) {
     this.x[0] = xPos - 1.02D;
@@ -49,21 +50,20 @@ public class Obstacle {
     this.y[12] = this.y[12];
     this.x[13] = this.x[10];
     this.y[13] = this.y[12];
-    for (int i = 0; i < lgt; i++) {
-	this.z[i] = zPos; 
-    }
+    this.z = zPos; 
+    this.active = true;
   }
   
     public void transform(double angle, int pivotPointX, int pivotPointY) {
 	double sine = Math.sin(-angle);
 	double cosine = Math.cos(angle);
 	//double d = 120.0D / (1.0D + T*this.z[0]);
-	double d = 150.0D / (1.0D + this.z[0]);
+	double scale = 150.0D / (1.0D + this.z);
 	for (int i = 0; i < lgt; i++) {
 	    double d1 = cosine * this.x[i] + sine * this.y[i];
 	    double d2 = -sine * this.x[i] + cosine * this.y[i];
-	    this.polyX[i] = (int)(d1 * d) + pivotPointX;
-	    this.polyY[i] = (int)(d2 * d) + pivotPointY;
+	    this.polyX[i] = (int)(d1 * scale) + pivotPointX;
+	    this.polyY[i] = (int)(d2 * scale) + pivotPointY;
 	} 
     }
  
@@ -138,6 +138,18 @@ public class Obstacle {
 	    return false;
 	}
 	return true;
+    }
+
+    public boolean isActive() {
+	return this.active;
+    }
+
+    public void activate() {
+	this.active = true;
+    }
+
+    public void deactivate() {
+	this.active = false;
     }
 
 } // Obstacle class

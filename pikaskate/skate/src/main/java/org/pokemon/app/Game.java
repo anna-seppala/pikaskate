@@ -27,9 +27,14 @@ public class Game extends JPanel implements Runnable{
     int[] groundY; // define polygon representing ground Y
     static int _h_ = 76;
     int yy;
+
     Obstacle Head; // first obstacle in double-linked list
     Freeobj obstacles; // double-linked list of obstacles
+    static int maxObstacles = 70; // how many obstacles are created
+    int[] maxObstaclesLevel; // how many obstacles can exist per level
+    int obstacleCounter;  // how many exist currently on scene
     double collisionRange; // z distance from player where collision can occur
+    
     int playerWidth;
     int playerHeight;
     double[] playerVelocity; // in world frame
@@ -39,8 +44,6 @@ public class Game extends JPanel implements Runnable{
     double imageScaling;  // make sure player image always same size
     int[] imageSize;  // original size of player images in width,height
     
-    int counter;
-    int maxcount;
     int runningScore; // used to get score when game running
     int savedScore; //put score here after collision (score changes even in demo)
     int highScore;
@@ -63,7 +66,6 @@ public class Game extends JPanel implements Runnable{
     int maxLevel = 9;
     int[] clearScore; // array showing which number of points starts new level
     Color[] bgColors; //colour of background (changes by level)
-    int[] maxcounts;
     boolean rFlag; // whether palyer pressed right arrow
     boolean lFlag; // whether palyer pressed left arrow
     private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
@@ -104,7 +106,12 @@ public class Game extends JPanel implements Runnable{
 
 	this.fff = true;
 	this.yy = _h_;
-	this.obstacles = new Freeobj(64); // create obstacles
+	this.obstacles = new Freeobj(this.maxObstacles); // create obstacles
+	this.Head = obstacles.getHead();
+	if (this.Head == null ) {
+	    System.out.println("still null");
+	}
+	System.out.println("have obbst");
 	this.startFlag = false;
 	this.isContinue = false;
 				// 8000
@@ -115,7 +122,7 @@ public class Game extends JPanel implements Runnable{
         new Color(48, 11, 192), new Color(48, 11, 202), 
         new Color(48, 11, 212), new Color(48, 11, 222), 
         new Color(48, 11, 242) };
-	this.maxcounts = new int[] {4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+	this.maxObstaclesLevel = new int[] {4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	this.rFlag = false;
 	this.lFlag = false;
 	this.isFocus = true;
@@ -161,7 +168,9 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle1 = this.Head;
 		while (obstacle1 != null) {
-		    obstacle1.fill(g2d);
+		    if (obstacle1.isActive()) {
+			    obstacle1.fill(g2d);
+		    }
 		    obstacle1 = obstacle1.next;
 		} 
 
@@ -198,7 +207,9 @@ public class Game extends JPanel implements Runnable{
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
 		Obstacle obstacle2 = this.Head;
 		while (obstacle2 != null) {
-		    obstacle2.fill(g2d);
+		    if (obstacle2.isActive()) {
+			obstacle2.fill(g2d);
+		    }
 		    obstacle2 = obstacle2.next;
 		}
 
@@ -357,14 +368,8 @@ public class Game extends JPanel implements Runnable{
 //-------------------------------- Events end
 
     // delete all obstacles
-    void clearObstacle() {
-	Obstacle obstacle1 = this.Head;
-	while (obstacle1 != null) {
-	    Obstacle obstacle2 = obstacle1.next;
-	    this.obstacles.deleteObj(obstacle1);
-	    obstacle1 = obstacle2;
-	} 
-	this.Head = null;
+    void clearObstacles() {
+	obstacles.deactivateAll();
     }
  
     // wrapper to start game
@@ -422,13 +427,13 @@ public class Game extends JPanel implements Runnable{
  
     // main logic of the game
     void prt() {
+	System.out.println("prt");
 	// levels change based on score
 	if (this.runningScore > this.clearScore[this.level] && this.gameMode == 0) {
 	    this.level++;
 	    if (this.level > this.maxLevel) {
 		this.level = this.maxLevel; // keep playing at max level
 	    }
-	    this.maxcount = this.maxcounts[this.level];
 	} 
 	this.imgTimeCounter++;
 	if (this.damaged == 0 && this.gameMode == 0) {
@@ -588,16 +593,17 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObstacles() {
 	boolean collision = false;
+	System.out.println("obstacleCounter: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
 	Obstacle obstacle1 = this.Head;
 	while (obstacle1 != null) {
-	    for (int i = 0; i < obstacle1.lgt; i++) { // z movement of obs in player
-		obstacle1.z[i] -= playerVelocity[2]*1;	// frame for 1 time step 
-		obstacle1.x[i] += this.playerVelocity[0]*1; // obstacle movement in x for 1 time step
-	    } 
-	    Obstacle obstacle2 = obstacle1.next;
+	    obstacle1.z -= playerVelocity[2]*1;// obs z movement (player frame)
+	    for (int i = 0; i < obstacle1.lgt; i++) { 
+		// shift obstacles by how much player moves in x
+		obstacle1.x[i] += this.playerVelocity[0]*1; 
+	    }
 	    // is obstacle at the front (risk of collision)?
-	    if (obstacle1.z[0] <= this.collisionRange) {
+	    if (obstacle1.z <= this.collisionRange) {
 		int xMin = this.centerX - this.playerWidth/2;
 		int xMax = xMin + this.playerWidth/2;
 		//TODO: set yposition right!
@@ -605,7 +611,7 @@ public class Game extends JPanel implements Runnable{
 		int yMax = this.height;
 		if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
 		    collision = true;
-		    //TODO this won't work because hit obstacles disappear straght away
+		    //TODO this won't work because same obstacles rotated??
 		    // Only change colour in play mode (not in demo)
 		    if (this.gameMode == 0) {
 			obstacle1.setCollided(collision);
@@ -615,37 +621,26 @@ public class Game extends JPanel implements Runnable{
 		}
 	    }
 	    // obstacle moves out of sight -> delete + update linked list
-	    if ((obstacle1.z[0] <= 0.45D) 
-		    || !obstacle1.isInside(0,0,this.width, this.height)) {
-		if (obstacle1.prev != null) {
-		    obstacle1.prev.next = obstacle1.next;
-		}
-		if (obstacle1.next != null) {
-		    obstacle1.next.prev = obstacle1.prev; 
-		}
-		this.obstacles.deleteObj(obstacle1);
-		obstacle1 = obstacle2;
+	    if (((obstacle1.z <= 0.45D)
+		    || !obstacle1.isInside(0,0,this.width, this.height))
+		    && obstacle1.isActive()) {
+		obstacle1.deactivate();
+		this.obstacleCounter--; // remove deleted obstacle of total
+		System.out.println("deactivated obstacle");
 	    }
-	    obstacle1 = obstacle2;
+	    obstacle1 = obstacle1.next;
 	   
 	} 
-	this.counter++; // what counter??
-	if (this.counter >= this.maxcount) {
+	if (this.obstacleCounter < this.maxObstaclesLevel[this.level]) {
+	System.out.println("trying to create");
 	//if (this.counter >= this.maxcount) {
 	    double d = 0;
-	    this.counter = 0;
 	    // take first element of obstacles and prepend it to current Head
-	    obstacle1 = this.obstacles.getObj();
-	    if (this.Head != null) {
-		this.Head.prev = obstacle1; 
-	    }
-	    obstacle1.next = this.Head;
-	    obstacle1.prev = null;
-	    this.Head = obstacle1;
-	    //d = Math.random() * 32.0D - 16.0D;
 	    d = Math.random() * 44.0D - 22.0D;
-	    // add new obstacle to game scene at location d
-	    obstacle1.init(d, horizon);
+	    if (obstacles.activateObstacle(d,horizon)) {
+		this.obstacleCounter++; // add new object to number of existing ones
+		System.out.println("activated obstacle");
+	    }
 	}
 	// tan of player's tilt angle (depends on x velocity)
 	double angle = this.maxTilt * this.playerVelocity[0];
@@ -669,16 +664,15 @@ public class Game extends JPanel implements Runnable{
 
     void reset() {
 	// clear stats
-	clearObstacle();
+	clearObstacles();
     	this.damaged = 0;
-    	this.counter = 0;
+    	this.obstacleCounter = 0;
     	this.level = 0;
     	this.runningScore = 0;
     	this.playerVelocity[0] = 0.0D;
 	if (this.gameMode > 0) {
 	    // demo -> set correct gameMode
 	    this.gameMode = 1;
-    	    this.maxcount = 5;
 	} else {
 	    // real game -> check whether continuing or starting over
     	    if (this.isContinue) {
@@ -687,22 +681,21 @@ public class Game extends JPanel implements Runnable{
     	    if (this.level > 0) {
     	        this.runningScore = this.clearScore[this.level - 1]; 
     	    }
-    	    this.maxcount = this.maxcounts[this.level];
 	}
     }
 
 
     public void run() {
 	Thread thisThread = Thread.currentThread(); // added to try get rid of Thread.stop
-	System.gc(); // garbage collector (not guaranteed to work)
+	//System.gc(); // garbage collector (not guaranteed to work)
 	reset();
 	if (this.gameMode > 0) {
 	    while(true) {
 		demo();
 		repaint();
 	    }
-	} else { 
-	    while (!moveObstacles() && (thisThread == this.gameThread)) { // until collision happens
+	} else { // actual game loop until collision happens 
+	    while (!moveObstacles() && (thisThread == this.gameThread)) {
 		prt();
 		repaint();
 	    }
