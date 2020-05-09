@@ -18,7 +18,8 @@ import javax.swing.KeyStroke;
 import javax.swing.JComponent;
 
 public class Game extends JPanel implements Runnable{
-    static int horizon = 26; // z distance from player
+    static int horizon = 26; // z distance of horizon from player
+    int horizonY; // how high in y horizon is seen on screen
     boolean fff;
     double pi = 3.14159D;
     double maxTilt; // how many radians the world tilts when steering left/right
@@ -84,6 +85,15 @@ public class Game extends JPanel implements Runnable{
 	this.setBounds(0,0,this.width,this.height);
 	this.centerX = this.width / 2;
 	this.centerY = this.height / 2;
+	this.horizonY = this.centerY + 14; // a bit higher than center
+	// lower left & right corners (2,3) constant, upper ones (0,1) change
+	this.groundX = new int[4];
+	this.groundY = new int[4];
+	this.groundX[2] = this.width;
+	this.groundY[2] = this.height;
+	this.groundX[3] = 0;
+	this.groundY[3] = this.height;
+
     
 	this.playerWidth = 50; // used to detect collision and scale player icon
 	this.playerVelocity = new double[]{0,0,1}; // only moving in z (towards horizon)
@@ -92,8 +102,6 @@ public class Game extends JPanel implements Runnable{
 	this.xSpeedDecay = 0.025;
 
 	this.fff = true;
-	this.groundX = new int[4];
-	this.groundY = new int[4];
 	this.yy = _h_;
 	this.obstacles = new Freeobj(64); // create obstacles
 	this.startFlag = false;
@@ -118,10 +126,6 @@ public class Game extends JPanel implements Runnable{
     }
   
     public void init() {
-	this.groundX[2] = this.width;
-	this.groundY[2] = this.height;
-	this.groundX[3] = 0;
-	this.groundY[3] = this.height;
 	// open images
 	myImgs = new Image[14];
 	for (int i=0; i<this.myImgs.length; i++) {
@@ -648,16 +652,15 @@ public class Game extends JPanel implements Runnable{
 	// cosine and sine of player's tilt angle (depends on x velocity?)
 	double sine = Math.sin(this.maxTilt * (-this.playerVelocity[0]));
 	double cosine = Math.cos(this.maxTilt * this.playerVelocity[0]);
-
-	double d2 = 120.0D / (1.0D + Obstacle.T * this.horizon);
-	double d1 = -sine * -this.horizon + 2.0D;
+	double tan = Math.tan(this.maxTilt * (-this.playerVelocity[0]));
+	// tilting about (centerX,horizonY)
+	// determine y pos of tilted horizon (one cortner sinks, one rises)
 	this.groundX[0] = 0;
-	this.groundY[0] = (int)(d1 * d2) + this.centerY;
-	d1 = -sine * this.horizon + 2.0D;
+	this.groundY[0] = (int) ((tan)*(double)this.centerX) + this.horizonY;
 	this.groundX[1] = this.width;
-	this.groundY[1] = (int)(d1 * d2) + this.centerY;
+	this.groundY[1] = (int) (-(tan)*(double)this.centerX) + this.horizonY;
 	obstacle1 = this.Head;
-	while (obstacle1 != null) {
+	while (obstacle1 != null) { // transform obstacles to tilt with horizon
 	    obstacle1.transform(cosine, sine, this.centerX, this.centerY);
 	    obstacle1 = obstacle1.next;
 	} 
