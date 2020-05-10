@@ -9,11 +9,9 @@ public class Freeobj {
 	FloatyObject floaty1;
 	for (int i = 0; i < numberObstacles; i++) {
 	    if (i % 10 == 0) { // every 10th obj is heart
-		floaty1 = new Heart();
-		System.out.println("create heart");
+		floaty1 = new Heart(i);
 	    } else {
-		floaty1 = new Obstacle();
-		System.out.println("create obstacle");
+		floaty1 = new Obstacle(i);
 	    }
 	    if (i == 0) {
 		this.tail = floaty1;
@@ -54,13 +52,14 @@ public class Freeobj {
 	while (floaty1 != null) {
 	    if ((floaty1.getClass().getSimpleName().equals(simpleName) )
 		    && (!floaty1.isActive())) {
-		System.out.println("found non-active " + simpleName);
 		// add new obstacle to game scene at location xPos,zPos
 		floaty1.init(xPos, zPos);
 		if (floaty1 != this.head) { // only move if not already head
 		    floaty1.prev.next = floaty1.next;
 		    if (floaty1 != this.tail) { // next is null if tail
 			floaty1.next.prev = floaty1.prev;
+		    } else { // if moving tail, update this.tail
+			this.tail = floaty1.prev;
 		    }
 		    floaty1.next = this.head;
 		    this.head.prev = floaty1;

@@ -9,8 +9,8 @@ import java.awt.Rectangle;
 public class Obstacle extends FloatyObject{
     static double T = 0.6D;
 
-    public Obstacle() {
-	super(14);
+    public Obstacle(int id) {
+	super(14, id);
     }
   
     void init(double xPos, double zPos) {

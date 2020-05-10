@@ -8,8 +8,8 @@ import java.awt.Rectangle;
 
 public class Heart extends FloatyObject {
 
-    public Heart() {
-      super(20);
+    public Heart(int id) {
+      super(20, id);
     }
   
   void init(double xPos, double zPos) {
@@ -19,7 +19,7 @@ public class Heart extends FloatyObject {
     this.y[1] = 0.5D;
     this.x[2] = xPos - 1.38D;
     this.y[2] = -0.13D;
-    this.x[3] = -xPos - 1.31D;
+    this.x[3] = xPos - 1.31D;
     this.y[3] = -0.82D;
     this.x[4] = xPos - 0.72D;
     this.y[4] = -1.26D;
@@ -56,6 +56,9 @@ public class Heart extends FloatyObject {
     this.y[19] = -0.3D;
     this.z = zPos; 
     this.active = true;
+    for (int i=0; i<this.nodes; i++) {
+	this.y[i] += 1D;
+    }
   }
   
     // paint method to render obstacle
@@ -71,7 +74,7 @@ public class Heart extends FloatyObject {
     	}
     	Graphics2D g2d = (Graphics2D) g;
     	g2d.setColor(heartColorLight);
-    	g2d.fillPolygon(this.polyX, this.polyY, 19);
+    	g2d.fillPolygon(this.polyX, this.polyY, 18);
     	//connect(0, 0);
     	//connect(1, 1);
     	//connect(2, 7);

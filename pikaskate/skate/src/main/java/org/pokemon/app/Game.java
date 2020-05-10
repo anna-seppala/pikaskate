@@ -593,7 +593,7 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObjects() {
 	boolean collision = false;
-	System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
+	//System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
 	FloatyObject floaty1 = this.objects.getHead();
 	while ((floaty1 != null)) {
@@ -640,7 +640,7 @@ public class Game extends JPanel implements Runnable{
 	}
 	// create new obstacles if not enough on scene
 	if ((this.rounds % objects.creationDelay == 0) 
-	    && (this.obstacleCounter < this.maxObstaclesLevel[this.level])) {
+	    && (this.obstacleCounter <= this.maxObstaclesLevel[this.level])) {
 	    double d = Math.random() * 44.0D - 22.0D;
 	    if (objects.activateObject(d,horizon, "Obstacle")) {
 		this.obstacleCounter++; // add new obstacle to number of existing ones
@@ -648,7 +648,7 @@ public class Game extends JPanel implements Runnable{
 	}
 	// create new hearts if not enough
 	if ((this.rounds % objects.creationDelay == 0) 
-	    && (this.heartCounter < this.maxHeartsLevel[this.level])) {
+	    && (this.heartCounter <= this.maxHeartsLevel[this.level])) {
 	    double d = Math.random() * 44.0D - 22.0D;
 	    if (objects.activateObject(d,horizon, "Heart")) {
 		this.heartCounter++; // add new heart to total

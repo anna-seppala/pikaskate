@@ -7,25 +7,27 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 
 public abstract class FloatyObject {
-  int nodes; //number of point in dustbin polygon
-  int[] polyX; // x-position of polygon points
-  int[] polyY; // y position of plygon points
-  int[] polyX1 = new int[6];  // Additional shape to create shadows
-  int[] polyY1 = new int[6];  //       -- .. --
-  public double[] x; // these hold the orig non-transformed
-  public double[] y; // polygon points
-  public double z; // distance from player
-  boolean collided = false; // track whether this object has collided with player;
-  public FloatyObject next;
-  public FloatyObject prev; 
-  boolean active = false; // is obstacle on scene or not
+    int nodes; //number of point in dustbin polygon
+    int[] polyX; // x-position of polygon points
+    int[] polyY; // y position of plygon points
+    int[] polyX1 = new int[6];  // Additional shape to create shadows
+    int[] polyY1 = new int[6];  //       -- .. --
+    public double[] x; // these hold the orig non-transformed
+    public double[] y; // polygon points
+    public double z; // distance from player
+    boolean collided = false; // track whether this object has collided with player;
+    public FloatyObject next;
+    public FloatyObject prev; 
+    boolean active = false; // is obstacle on scene or not
+    int id;
  
-    public FloatyObject (int nodes) {
+    public FloatyObject (int nodes, int id) {
 	this.nodes = nodes;
 	this.polyX = new int[nodes];
 	this.polyY = new int[nodes];
 	this.x = new double[nodes];
 	this.y = new double[nodes];
+	this.id = id;
     }
 
     abstract void init(double xPos, double zPos);
