@@ -28,10 +28,12 @@ public class Game extends JPanel implements Runnable{
     static int _h_ = 76;
     int yy;
 
-    Freeobj obstacles; // double-linked list of obstacles
-    static int maxObstacles = 70; // how many obstacles are created
+    Freeobj objects; // double-linked list of objects (obstacles/hearts)
+    static int maxObjects = 70; // how many obstacles are created
     int[] maxObstaclesLevel; // how many obstacles can exist per level
     int obstacleCounter;  // how many exist currently on scene
+    int[] maxHeartsLevel; // how many hearts can exist per level
+    int heartCounter; // number of hearts in scene
     double collisionRange; // z distance from player where collision can occur
     
     int playerWidth;
@@ -106,7 +108,7 @@ public class Game extends JPanel implements Runnable{
 
 	this.fff = true;
 	this.yy = _h_;
-	this.obstacles = new Freeobj(this.maxObstacles); // create obstacles
+	this.objects = new Freeobj(this.maxObjects); // create objects
 	this.startFlag = false;
 	this.isContinue = false;
 				// 8000
@@ -117,7 +119,8 @@ public class Game extends JPanel implements Runnable{
         new Color(48, 11, 192), new Color(48, 11, 202), 
         new Color(48, 11, 212), new Color(48, 11, 222), 
         new Color(48, 11, 242) };
-	this.maxObstaclesLevel = new int[] {65, 20, 22, 25, 30, 35, 40, 2, 1, 1, 1, 1 };
+	this.maxObstaclesLevel = new int[] {15, 20, 22, 25, 30, 35, 40, 45, 50, 60};
+	this.maxHeartsLevel = new int[] {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
 	this.rFlag = false;
 	this.lFlag = false;
 	this.isFocus = true;
@@ -161,12 +164,12 @@ public class Game extends JPanel implements Runnable{
 
 		g2d.setColor(new Color(230, 187, 196));
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
-		Obstacle obstacle1 = this.obstacles.getHead();
-		while (obstacle1 != null) {
-		    if (obstacle1.isActive()) {
-			    obstacle1.fill(g2d);
+		FloatyObject floaty1 = this.objects.getHead();
+		while (floaty1 != null) {
+		    if (floaty1.isActive()) {
+			    floaty1.fill(g2d);
 		    }
-		    obstacle1 = obstacle1.next;
+		    floaty1 = floaty1.next;
 		} 
 
 		if (this.damaged == 0) {
@@ -194,18 +197,18 @@ public class Game extends JPanel implements Runnable{
 		}
 
 		break;
-	    case 1: // demo mode -> paint scene+obstacles only
+	    case 1: // demo mode -> paint scene+objects only
 		g2d.setColor(this.bgColors[this.level]);//colour depends on level
 		g2d.fillRect(0, 0, this.width, this.height);
 
 		g2d.setColor(new Color(230, 187, 196));
 		g2d.fillPolygon(this.groundX, this.groundY, 4);
-		Obstacle obstacle2 = this.obstacles.getHead();
-		while (obstacle2 != null) {
-		    if (obstacle2.isActive()) {
-			obstacle2.fill(g2d);
+		FloatyObject floaty2 = this.objects.getHead();
+		while (floaty2 != null) {
+		    if (floaty2.isActive()) {
+			floaty2.fill(g2d);
 		    }
-		    obstacle2 = obstacle2.next;
+		    floaty2 = floaty2.next;
 		}
 
 		int i = g2d.getFontMetrics(this.parent.titleFont)
@@ -362,10 +365,11 @@ public class Game extends JPanel implements Runnable{
 
 //-------------------------------- Events end
 
-    // delete all obstacles
-    void clearObstacles() {
-	obstacles.deactivateAll();
+    // delete all objects
+    void clearObjects() {
+	objects.deactivateAll();
 	this.obstacleCounter = 0;
+	this.heartCounter = 0;
     }
  
     // wrapper to start game
@@ -496,16 +500,16 @@ public class Game extends JPanel implements Runnable{
 	    if (this.runningScore < 200) {
 		this.yy = _h_ - 10 + this.runningScore / 20; 
 	    }
-	    if (this.playerVelocity[0] > -0.2D) { // left
+	    if (this.playerVelocity[0] < -0.2D) { // left
 		this.myImg0 = this.myImgs[10]; 
 	    }
-	    if (this.playerVelocity[0] > -0.4D) { // sharp left
+	    if (this.playerVelocity[0] < -0.4D) { // sharp left
 		this.myImg0 = this.myImgs[11]; 
 	    }
-	    if (this.playerVelocity[0] < 0.2D) { // right
+	    if (this.playerVelocity[0] > 0.2D) { // right
 		this.myImg0 = this.myImgs[8]; 
 	    }
-	    if (this.playerVelocity[0] < 0.4D) { // sharp right
+	    if (this.playerVelocity[0] > 0.4D) { // sharp right
 		this.myImg0 = this.myImgs[9]; 
 	    }
 	     
@@ -585,52 +589,69 @@ public class Game extends JPanel implements Runnable{
 	} 
     }
 
-    // define how obstacles behave in the game
+    // define how objects behave in the game
     // returns true if player hit obstacle, false otherwise
-    boolean moveObstacles() {
+    boolean moveObjects() {
 	boolean collision = false;
+	System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
-	Obstacle obstacle1 = this.obstacles.getHead();
-	while ((obstacle1 != null)) {
-		if (obstacle1.isActive()) {
-		obstacle1.z -= playerVelocity[2]*1;// obs z movement (player frame)
-		for (int i = 0; i < obstacle1.lgt; i++) { 
-		    // shift obstacles by how much player moves in x
-		    obstacle1.x[i] -= this.playerVelocity[0]*1; 
+	FloatyObject floaty1 = this.objects.getHead();
+	while ((floaty1 != null)) {
+		if (floaty1.isActive()) {
+		floaty1.z -= playerVelocity[2]*1;// obs z movement (player frame)
+		for (int i = 0; i < floaty1.nodes; i++) { 
+		    // shift objects by how much player moves in x
+		    floaty1.x[i] -= this.playerVelocity[0]*1; 
 		}
 		// is obstacle at the front (risk of collision)?
-		if (obstacle1.z <= this.collisionRange) {
+		if (floaty1.z <= this.collisionRange) {
 		    int xMin = this.centerX - this.playerWidth/2;
 		    int xMax = xMin + this.playerWidth/2;
 		    //TODO: set yposition right!
 		    int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
 		    int yMax = this.height;
-		    if (obstacle1.isCollision(xMin, xMax, yMin, yMax)) {
+		    if (floaty1.isCollision(xMin, xMax, yMin, yMax)) {
 			collision = true;
-			//TODO this won't work because same obstacles rotated??
+			//TODO this won't work because same objects rotated??
 			// Only change colour in play mode (not in demo)
 			if (this.gameMode == 0) {
-			    obstacle1.setCollided(collision);
-			    this.damaged++;
+			    floaty1.setCollided(collision);
+			    if (floaty1 instanceof Obstacle) {
+				this.damaged++;
+			    } else if (floaty1 instanceof Heart) {
+				this.health++;
+			    }
 			}
 		    }
 		}
 	    }
-	    // obstacle moves out of sight -> delete + update linked list
-	    if (((obstacle1.z <= 0.45D)
-		    || !obstacle1.isInside(0,0,this.width, this.height))
-		    && obstacle1.isActive()) {
-		obstacle1.deactivate();
-		this.obstacleCounter--; // remove deleted obstacle of total
+	    // oobject moves out of sight -> delete + update linked list
+	    if (((floaty1.z <= 0.45D)
+		    || !floaty1.isInside(0,0,this.width, this.height))
+		    && floaty1.isActive()) {
+		floaty1.deactivate();
+		if (floaty1 instanceof Obstacle) {
+		    this.obstacleCounter--; // remove deleted obstacle of total
+		} else if (floaty1 instanceof Heart) {
+		    this.heartCounter--;
+		}
 	    }
-	    obstacle1 = obstacle1.next;
-	   
-	} 
-	if ((this.rounds % obstacles.creationDelay == 0) 
+	    floaty1 = floaty1.next;
+	}
+	// create new obstacles if not enough on scene
+	if ((this.rounds % objects.creationDelay == 0) 
 	    && (this.obstacleCounter < this.maxObstaclesLevel[this.level])) {
 	    double d = Math.random() * 44.0D - 22.0D;
-	    if (obstacles.activateObstacle(d,horizon)) {
-		this.obstacleCounter++; // add new object to number of existing ones
+	    if (objects.activateObject(d,horizon, "Obstacle")) {
+		this.obstacleCounter++; // add new obstacle to number of existing ones
+	    }
+	}
+	// create new hearts if not enough
+	if ((this.rounds % objects.creationDelay == 0) 
+	    && (this.heartCounter < this.maxHeartsLevel[this.level])) {
+	    double d = Math.random() * 44.0D - 22.0D;
+	    if (objects.activateObject(d,horizon, "Heart")) {
+		this.heartCounter++; // add new heart to total
 	    }
 	}
 	// tan of player's tilt angle (depends on x velocity)
@@ -642,10 +663,10 @@ public class Game extends JPanel implements Runnable{
 	this.groundY[0] = (int) (tan*(double)this.width/2.0D) + this.horizonY;
 	this.groundX[1] = this.width;
 	this.groundY[1] = (int) ((-tan)*(double)this.width/2.0D) + this.horizonY;
-	obstacle1 = this.obstacles.getHead();
-	while (obstacle1 != null) { // transform obstacles to tilt with horizon
-	    obstacle1.transform(angle, this.centerX, this.horizonY);
-	    obstacle1 = obstacle1.next;
+	floaty1 = this.objects.getHead();
+	while (floaty1 != null) { // transform objects to tilt with horizon
+	    floaty1.transform(angle, this.centerX, this.horizonY);
+	    floaty1 = floaty1.next;
 	} 
 
 	return collision;
@@ -653,9 +674,10 @@ public class Game extends JPanel implements Runnable{
   
     void reset() {
 	// clear stats
-	clearObstacles();
+	clearObjects();
     	this.damaged = 0;
     	this.obstacleCounter = 0;
+    	this.heartCounter = 0;
     	this.level = 0;
 	this.rounds = 0;
     	this.runningScore = 0;
@@ -685,7 +707,7 @@ public class Game extends JPanel implements Runnable{
 		repaint();
 	    }
 	} else { // actual game loop until collision happens 
-	    while (!moveObstacles() && (thisThread == this.gameThread)) {
+	    while (!moveObjects() && (thisThread == this.gameThread)) {
 		prt();
 		repaint();
 	    }
@@ -695,8 +717,8 @@ public class Game extends JPanel implements Runnable{
 		this.health = 0;
 	    }
 	    this.savedScore = this.runningScore;
-	    for (int i = 1; i < 50; i++) {
-		moveObstacles();
+	    for (int i = 1; i < 50; i++) { // TODO set back to ~50
+		moveObjects();
 		prt();
 		repaint();
 		//System.out.println("after hitting");
@@ -724,7 +746,7 @@ public class Game extends JPanel implements Runnable{
 
     // demo shown before game starts -> don't count score
     void demo() {
-	moveObstacles();
+	moveObjects();
 	prt();
 	this.runningScore = 0;
     }

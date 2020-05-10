@@ -1,29 +1,40 @@
 package org.pokemon.app;
 
 public class Freeobj {
-    Obstacle head;
+    FloatyObject head;
+    FloatyObject tail;
     public int creationDelay = 4; // how many rounds before creating new object 
 
     public Freeobj(int numberObstacles) {
+	FloatyObject floaty1;
 	for (int i = 0; i < numberObstacles; i++) {
-	    Obstacle obstacle1 = new Obstacle();
-	    obstacle1.next = this.head;
-	    if (this.head != null) {
-		this.head.prev = obstacle1;
+	    if (i % 10 == 0) { // every 10th obj is heart
+		floaty1 = new Heart();
+		System.out.println("create heart");
+	    } else {
+		floaty1 = new Obstacle();
+		System.out.println("create obstacle");
 	    }
-	    this.head = obstacle1;
+	    if (i == 0) {
+		this.tail = floaty1;
+	    }
+	    floaty1.next = this.head;
+	    if (this.head != null) {
+		this.head.prev = floaty1;
+	    }
+	    this.head = floaty1;
 	} 
     }
   
     // take head obstacle and remove it from linked list
-    public Obstacle popObstacle() {
-	Obstacle obstacle1 = this.head;
+    public FloatyObject popObject() {
+	FloatyObject floaty1 = this.head;
 	this.head = this.head.next;
-	obstacle1.next = null;
-	return obstacle1;
+	floaty1.next = null;
+	return floaty1;
     }
  
-    public Obstacle getHead() {
+    public FloatyObject getHead() {
 	return this.head;
     }
 
@@ -38,32 +49,36 @@ public class Freeobj {
     // find first non-active obstacle and activate it.
     // put newly activated obstacle at the beginning of linked list
     // -> this way it'll be painted first (and won't go over older obstacles)
-    public boolean activateObstacle(double xPos, double zPos) {
-	Obstacle obstacle1 = this.head;
-	while (obstacle1 != null) {
-	    if (!obstacle1.isActive()) {
+    public boolean activateObject(double xPos, double zPos, String simpleName) {
+	FloatyObject floaty1 = this.head;
+	while (floaty1 != null) {
+	    if ((floaty1.getClass().getSimpleName().equals(simpleName) )
+		    && (!floaty1.isActive())) {
+		System.out.println("found non-active " + simpleName);
 		// add new obstacle to game scene at location xPos,zPos
-		obstacle1.init(xPos, zPos);
-		if (obstacle1 != this.head) { // only move if not already head
-		    obstacle1.prev.next = obstacle1.next;
-		    obstacle1.next.prev = obstacle1.prev;
-		    obstacle1.next = this.head;
-		    this.head.prev = obstacle1;
-		    this.head = obstacle1;
+		floaty1.init(xPos, zPos);
+		if (floaty1 != this.head) { // only move if not already head
+		    floaty1.prev.next = floaty1.next;
+		    if (floaty1 != this.tail) { // next is null if tail
+			floaty1.next.prev = floaty1.prev;
+		    }
+		    floaty1.next = this.head;
+		    this.head.prev = floaty1;
+		    this.head = floaty1;
 		    this.head.prev = null;
 		}
-		return obstacle1.isActive();
+		return floaty1.isActive();
 	    }
-	obstacle1 = obstacle1.next;
+	floaty1 = floaty1.next;
 	}
 	return false;
     }
     
     public void deactivateAll() {
-	Obstacle obstacle1 = this.head;
-	while (obstacle1 != null) {
-	    obstacle1.deactivate();
-	    obstacle1 = obstacle1.next;
+	FloatyObject floaty1 = this.head;
+	while (floaty1 != null) {
+	    floaty1.deactivate();
+	    floaty1 = floaty1.next;
 	} 
     }
 }
