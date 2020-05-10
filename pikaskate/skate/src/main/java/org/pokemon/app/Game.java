@@ -496,16 +496,16 @@ public class Game extends JPanel implements Runnable{
 	    if (this.runningScore < 200) {
 		this.yy = _h_ - 10 + this.runningScore / 20; 
 	    }
-	    if (this.playerVelocity[0] > 0.2D) { // left
+	    if (this.playerVelocity[0] > -0.2D) { // left
 		this.myImg0 = this.myImgs[10]; 
 	    }
-	    if (this.playerVelocity[0] > 0.4D) { // sharp left
+	    if (this.playerVelocity[0] > -0.4D) { // sharp left
 		this.myImg0 = this.myImgs[11]; 
 	    }
-	    if (this.playerVelocity[0] < -0.2D) { // right
+	    if (this.playerVelocity[0] < 0.2D) { // right
 		this.myImg0 = this.myImgs[8]; 
 	    }
-	    if (this.playerVelocity[0] < -0.4D) { // sharp right
+	    if (this.playerVelocity[0] < 0.4D) { // sharp right
 		this.myImg0 = this.myImgs[9]; 
 	    }
 	     
@@ -557,10 +557,10 @@ public class Game extends JPanel implements Runnable{
 	this.prevTime = System.currentTimeMillis();
 	if (this.damaged == 0 && this.gameMode == 0) {
 	    if (this.rFlag) {
-		this.playerVelocity[0] -= this.xSpeedIncr; 
+		this.playerVelocity[0] += this.xSpeedIncr; 
 	    }
 	    if (this.lFlag) {
-		this.playerVelocity[0] += this.xSpeedIncr; 
+		this.playerVelocity[0] -= this.xSpeedIncr; 
 	    }
 	    if (this.playerVelocity[0] < -this.xSpeedMax) {
 		this.playerVelocity[0] = -this.xSpeedMax; 
@@ -596,7 +596,7 @@ public class Game extends JPanel implements Runnable{
 		obstacle1.z -= playerVelocity[2]*1;// obs z movement (player frame)
 		for (int i = 0; i < obstacle1.lgt; i++) { 
 		    // shift obstacles by how much player moves in x
-		    obstacle1.x[i] += this.playerVelocity[0]*1; 
+		    obstacle1.x[i] -= this.playerVelocity[0]*1; 
 		}
 		// is obstacle at the front (risk of collision)?
 		if (obstacle1.z <= this.collisionRange) {
@@ -635,13 +635,13 @@ public class Game extends JPanel implements Runnable{
 	}
 	// tan of player's tilt angle (depends on x velocity)
 	double angle = this.maxTilt * this.playerVelocity[0];
-	double tan = Math.tan(-angle);
+	double tan = Math.tan(angle);
 	// tilting about (centerX,horizonY)
 	// determine y pos of tilted horizon (one corner sinks, one rises)
 	this.groundX[0] = 0;
-	this.groundY[0] = (int) ((tan)*(double)this.width/2.0D) + this.horizonY;
+	this.groundY[0] = (int) (tan*(double)this.width/2.0D) + this.horizonY;
 	this.groundX[1] = this.width;
-	this.groundY[1] = (int) (-(tan)*(double)this.width/2.0D) + this.horizonY;
+	this.groundY[1] = (int) ((-tan)*(double)this.width/2.0D) + this.horizonY;
 	obstacle1 = this.obstacles.getHead();
 	while (obstacle1 != null) { // transform obstacles to tilt with horizon
 	    obstacle1.transform(angle, this.centerX, this.horizonY);

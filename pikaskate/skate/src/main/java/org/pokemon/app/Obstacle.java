@@ -55,7 +55,7 @@ public class Obstacle {
   }
   
     public void transform(double angle, int pivotPointX, int pivotPointY) {
-	double sine = Math.sin(-angle);
+	double sine = Math.sin(angle);
 	double cosine = Math.cos(angle);
 	//double d = 120.0D / (1.0D + T*this.z[0]);
 	double scale = 150.0D / (1.0D + this.z);
