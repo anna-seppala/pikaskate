@@ -385,8 +385,10 @@ public class Game extends JPanel implements Runnable{
 	    }
 	}
 	// compute current score
-	this.player.computeScore(this.rFlag, this.lFlag);
-	 // if damaged == 0 and gameMode == 0
+	this.player.computeScore();
+	// change player velocity based on movement flags
+	this.player.setVelocity(this.rFlag, this.lFlag);
+
 	    if (this.player.runningScore < 200) {
 		this.yy = _h_ - 10 + this.player.runningScore / 20; 
 	    }
@@ -404,7 +406,7 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObjects() {
 	boolean collision = false;
-	System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
+	//System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
 	FloatyObject floaty1 = this.objects.getHead();
 	while ((floaty1 != null)) {
@@ -533,6 +535,8 @@ public class Game extends JPanel implements Runnable{
 	    this.gameMode = 4; // fallen slide mode
 	    for (int i = 1; i < 50; i++) { // TODO set back to ~50
 		moveObjects();
+		this.player.setVelocity(this.rFlag, this.lFlag);
+		this.rounds++;
 	    try {
 		// pause before going from collision to demo
 		Thread.currentThread().sleep(40L);
@@ -558,8 +562,8 @@ public class Game extends JPanel implements Runnable{
 	    } catch (InterruptedException interruptedException) {
 		System.out.println("exception in run(): " + interruptedException);
 	    }
+	    //reset();
 	    while (true) {
-		System.out.print("here");
 		demo();
 		repaint();
 	    }
@@ -568,9 +572,8 @@ public class Game extends JPanel implements Runnable{
 
     // demo shown before game starts -> don't count score
     void demo() {
-	this.player.playerVelocity[0] = 0;
-	this.player.playerVelocity[1] = 0;
 	moveObjects();
+	this.player.setVelocity(this.rFlag, this.lFlag);
 	this.rounds++;
 	//prt();
 	    try {

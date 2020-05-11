@@ -174,7 +174,7 @@ public class Player {
 
     }
 
-    public void computeScore(boolean rFlag, boolean lFlag) {
+    public void computeScore() {
 	if (this.damaged == 0) {
 	    long l1;
 	    this.runningScore++;
@@ -202,6 +202,9 @@ public class Player {
 	}
 	 
 	this.prevTime = System.currentTimeMillis();
+    }
+
+    public void setVelocity(boolean rFlag, boolean lFlag) {
 	if (this.damaged == 0) {
 	    if (rFlag) {
 		this.playerVelocity[0] += this.xSpeedIncr; 
