@@ -18,10 +18,9 @@ public class Game extends JPanel implements Runnable{
     boolean fff;
     double pi = 3.14159D;
     double maxTilt; // how many rad the world tilts when steering left/right
-    int[] groundX; // define polygon representing ground X
-    int[] groundY; // define polygon representing ground Y
     static int _h_ = 76;
     int yy;
+    World world;
     Player player;
 
     Freeobj objects; // double-linked list of objects (obstacles/hearts)
@@ -49,7 +48,6 @@ public class Game extends JPanel implements Runnable{
     int maxLevel = 9;
     int rounds; // how many rounds (loops) played
     int[] clearScore; // array showing which number of points starts new level
-    Color[] bgColors; //colour of background (changes by level)
     boolean rFlag; // whether palyer pressed right arrow
     boolean lFlag; // whether palyer pressed left arrow
     private String[] commands = {"UP", "DOWN", "LEFT", "RIGHT"};
@@ -66,18 +64,12 @@ public class Game extends JPanel implements Runnable{
 	this.maxTilt = this.pi/6D; //allow world to tilt 30 degreed 
 	this.width = 480;
 	this.height = 300;
-	this.setBounds(0,0,this.width,this.height);
+//	this.setBounds(0,0,this.width,this.height);
 	this.centerX = this.width / 2;
 	this.centerY = this.height / 2;
 	this.horizonY = this.centerY + 14; // a bit higher than center
-	// lower left & right corners (2,3) constant, upper ones (0,1) change
-	this.groundX = new int[4];
-	this.groundY = new int[4];
-	this.groundX[2] = this.width;
-	this.groundY[2] = this.height;
-	this.groundX[3] = 0;
-	this.groundY[3] = this.height;
 
+	this.world = new World(this.width, this.height);
 	this.player = new Player(3, this.centerX, this.height);
 
    	this.fff = true;
@@ -87,12 +79,6 @@ public class Game extends JPanel implements Runnable{
 	this.isContinue = false;
 				// 8000
 	this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200,25400, 40000, 9999999 };
-	this.bgColors = new Color[] { new Color(48, 11, 142), 
-        new Color(48, 11, 160), new Color(48, 11, 172), 
-        new Color(48, 11, 182), new Color(48, 11, 182), 
-        new Color(48, 11, 192), new Color(48, 11, 202), 
-        new Color(48, 11, 212), new Color(48, 11, 222), 
-        new Color(48, 11, 242) };
 	this.maxObstaclesLevel = new int[] {15, 20, 22, 25, 30, 35, 40, 45, 50, 60};
 	this.maxHeartsLevel = new int[] {5, 5, 4, 4, 3, 3, 2, 2, 1, 1};
 	this.rFlag = false;
@@ -117,11 +103,7 @@ public class Game extends JPanel implements Runnable{
 	switch (this.gameMode) {
 	    case 4:
 	    case 0: // normal game mode -> paint scene and player
-		g2d.setColor(this.bgColors[this.level]);//colour depends on level
-		g2d.fillRect(0, 0, this.width, this.height);
-
-		g2d.setColor(new Color(230, 187, 196));
-		g2d.fillPolygon(this.groundX, this.groundY, 4);
+		this.world.paint(g2d, this.level);
 		FloatyObject floaty1 = this.objects.getHead();
 		while (floaty1 != null) {
 		    if (floaty1.isActive()) {
@@ -147,11 +129,7 @@ public class Game extends JPanel implements Runnable{
 
 		break;
 	    case 1: // demo mode -> paint scene+objects only
-		g2d.setColor(this.bgColors[this.level]);//colour depends on level
-		g2d.fillRect(0, 0, this.width, this.height);
-
-		g2d.setColor(new Color(230, 187, 196));
-		g2d.fillPolygon(this.groundX, this.groundY, 4);
+		this.world.paint(g2d, this.level);
 		FloatyObject floaty2 = this.objects.getHead();
 		while (floaty2 != null) {
 		    if (floaty2.isActive()) {
@@ -416,8 +394,9 @@ public class Game extends JPanel implements Runnable{
 		    // shift objects by how much player moves in x
 		    floaty1.x[i] -= this.player.playerVelocity[0]*1; 
 		}
-		// is obstacle at the front (risk of collision)?
-		if (floaty1.z <= this.collisionRange) {
+		// is obstacle close enough to collide and not collided yet?
+		if (floaty1.z <= this.collisionRange
+			&& (!floaty1.collided)) {
 		    int xMin = this.centerX - this.player.playerWidth/2;
 		    int xMax = xMin + this.player.playerWidth/2;
 		    //TODO: set yposition right!
@@ -476,10 +455,10 @@ public class Game extends JPanel implements Runnable{
 	double tan = Math.tan(angle);
 	// tilting about (centerX,horizonY)
 	// determine y pos of tilted horizon (one corner sinks, one rises)
-	this.groundX[0] = 0;
-	this.groundY[0] = (int) (tan*(double)this.width/2.0D) + this.horizonY;
-	this.groundX[1] = this.width;
-	this.groundY[1] = (int) ((-tan)*(double)this.width/2.0D) + this.horizonY;
+	this.world.groundX[0] = 0;
+	this.world.groundY[0] = (int) (tan*(double)this.width/2.0D) + this.horizonY;
+	this.world.groundX[1] = this.width;
+	this.world.groundY[1] = (int) ((-tan)*(double)this.width/2.0D) + this.horizonY;
 	floaty1 = this.objects.getHead();
 	while (floaty1 != null) { // transform objects to tilt with horizon
 	    floaty1.transform(angle, this.centerX, this.horizonY);
@@ -537,16 +516,12 @@ public class Game extends JPanel implements Runnable{
 		moveObjects();
 		this.player.setVelocity(this.rFlag, this.lFlag);
 		this.rounds++;
-	    try {
-		// pause before going from collision to demo
-		Thread.currentThread().sleep(40L);
-	    } catch (InterruptedException interruptedException) {
-		System.out.println("exception in run(): " + interruptedException);
-	    }
-
-		//prt();
+		try {
+		    Thread.currentThread().sleep(40L);
+		} catch (InterruptedException interruptedException) {
+		    System.out.println("exception in run(): " + interruptedException);
+		}
 		repaint();
-		//System.out.println("after hitting");
 	    } 
 	    if (this.player.runningScore > this.player.highScore) {
 		this.player.highScore = this.player.savedScore;
