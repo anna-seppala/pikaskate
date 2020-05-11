@@ -64,7 +64,7 @@ public class Heart extends FloatyObject {
     // paint method to render obstacle
     public void fill(Graphics g) {
 
-	Color heartColor = new Color(227, 20, 103);
+	Color heartColor = new Color(235, 70, 115);
     	Color heartColorDark = new Color(187, 20, 73);
     	Color heartColorDarker = new Color(110, 15, 45);
     	Color heartColorLight = new Color(235, 120, 150);
@@ -92,18 +92,30 @@ public class Heart extends FloatyObject {
     	connect(1, 1);
     	connect(2, 2);
     	connect(3, 3);
-    	connect(4, 4);
-    	connect(5, 14);
-    	connect(6, 13);
-    	connect(7, 12);
-    	connect(8, 11);
-    	connect(9, 10);
-    	g2d.setColor(heartColor);
-    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 10);
+    	connect(4, 13);
+    	connect(5, 12);
+    	connect(6, 11);
+    	connect(7, 10);
+    	g2d.setColor(heartColorDark);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 8);
     	connect(0, 5);
     	connect(1, 6);
-    	connect(2, 15);
-    	connect(3, 16);
+    	connect(2, 16);
+    	connect(3, 15);
+    	g2d.setColor(heartColorDark);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 4);
+    	connect(0, 8);
+    	connect(1, 9);
+    	connect(2, 0);
+    	connect(3, 10);
+    	connect(4, 19);
+    	connect(5, 18);
+    	g2d.setColor(heartColor);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 6);
+    	connect(0, 3);
+    	connect(1, 4);
+    	connect(2, 14);
+    	connect(3, 13);
     	g2d.setColor(heartColor);
     	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 4);
     }
