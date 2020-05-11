@@ -10,8 +10,8 @@ public abstract class FloatyObject {
     int nodes; //number of point in dustbin polygon
     int[] polyX; // x-position of polygon points
     int[] polyY; // y position of plygon points
-    int[] polyX1 = new int[6];  // Additional shape to create shadows
-    int[] polyY1 = new int[6];  //       -- .. --
+    int[] polyHelpX1 = new int[6];  // Additional shape to create shadows
+    int[] polyHelpY1 = new int[6];  //       -- .. --
     public double[] x; // these hold the orig non-transformed
     public double[] y; // polygon points
     public double z; // distance from player
@@ -46,9 +46,9 @@ public abstract class FloatyObject {
     }
  
   // set a point of polyXY1 to polyXY
-  void connect(int paramInt1, int paramInt2) {
-    this.polyX1[paramInt1] = this.polyX[paramInt2];
-    this.polyY1[paramInt1] = this.polyY[paramInt2];
+  void connect(int polyHelpIdx, int polyIdx) {
+    this.polyHelpX1[polyHelpIdx] = this.polyX[polyIdx];
+    this.polyHelpY1[polyHelpIdx] = this.polyY[polyIdx];
   }
     
     // set this.collided to true if this obstacle collided with palyer

@@ -67,19 +67,19 @@ public class Obstacle extends FloatyObject{
     	connect(4, 13);
     	connect(5, 10);
     	g2d.setColor(obsColorDark);
-    	g2d.fillPolygon(this.polyX1, this.polyY1, 6);
+    	g2d.fillPolygon(this.polyHelpX1, this.polyHelpY1, 6);
     	connect(0, 2);
     	connect(1, 3);
     	connect(2, 5);
     	connect(3, 6);
     	g2d.setColor(obsColor);
-    	g2d.fillPolygon(this.polyX1, this.polyY1, 4);
+    	g2d.fillPolygon(this.polyHelpX1, this.polyHelpY1, 4);
     	connect(0, 10);
     	connect(1, 13);
     	connect(2, 12);
     	connect(3, 9);
     	g2d.setColor(obsColor);
-    	g2d.fillPolygon(this.polyX1, this.polyY1, 4);
+    	g2d.fillPolygon(this.polyHelpX1, this.polyHelpY1, 4);
     }
 
 } // Obstacle class

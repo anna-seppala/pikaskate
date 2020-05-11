@@ -57,7 +57,7 @@ public class Heart extends FloatyObject {
     this.z = zPos; 
     this.active = true;
     for (int i=0; i<this.nodes; i++) {
-	this.y[i] += 1D;
+	this.y[i] += 1D; //Workaround to lower heart to right height
     }
   }
   
@@ -74,7 +74,7 @@ public class Heart extends FloatyObject {
     	}
     	Graphics2D g2d = (Graphics2D) g;
     	g2d.setColor(heartColorLight);
-    	g2d.fillPolygon(this.polyX, this.polyY, 18);
+    	g2d.fillPolygon(this.polyX, this.polyY, 10);
     	//connect(0, 0);
     	//connect(1, 1);
     	//connect(2, 7);

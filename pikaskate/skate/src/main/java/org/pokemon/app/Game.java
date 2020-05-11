@@ -120,7 +120,7 @@ public class Game extends JPanel implements Runnable{
         new Color(48, 11, 212), new Color(48, 11, 222), 
         new Color(48, 11, 242) };
 	this.maxObstaclesLevel = new int[] {15, 20, 22, 25, 30, 35, 40, 45, 50, 60};
-	this.maxHeartsLevel = new int[] {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+	this.maxHeartsLevel = new int[] {5, 5, 4, 4, 3, 3, 2, 2, 1, 1};
 	this.rFlag = false;
 	this.lFlag = false;
 	this.isFocus = true;
@@ -158,6 +158,7 @@ public class Game extends JPanel implements Runnable{
 	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 	switch (this.gameMode) {
+	    case 4:
 	    case 0: // normal game mode -> paint scene and player
 		g2d.setColor(this.bgColors[this.level]);//colour depends on level
 		g2d.fillRect(0, 0, this.width, this.height);
@@ -611,15 +612,19 @@ public class Game extends JPanel implements Runnable{
 		    int yMin = this.height - this.playerHeight; //-this.yy // take velocity into account?
 		    int yMax = this.height;
 		    if (floaty1.isCollision(xMin, xMax, yMin, yMax)) {
-			collision = true;
 			//TODO this won't work because same objects rotated??
 			// Only change colour in play mode (not in demo)
 			if (this.gameMode == 0) {
 			    floaty1.setCollided(collision);
 			    if (floaty1 instanceof Obstacle) {
+				collision = true;
 				this.damaged++;
 			    } else if (floaty1 instanceof Heart) {
 				this.health++;
+				if (this.health > this.parent.healthMeter.maxHealth) {
+				    this.health = this.parent.healthMeter.maxHealth;
+				}
+				this.parent.healthMeter.setHealth(this.health);
 			    }
 			}
 		    }
@@ -717,6 +722,7 @@ public class Game extends JPanel implements Runnable{
 		this.health = 0;
 	    }
 	    this.savedScore = this.runningScore;
+	    this.gameMode = 4; // fallen slide mode
 	    for (int i = 1; i < 50; i++) { // TODO set back to ~50
 		moveObjects();
 		prt();
