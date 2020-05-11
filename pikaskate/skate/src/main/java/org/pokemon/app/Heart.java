@@ -53,7 +53,7 @@ public class Heart extends FloatyObject {
     this.x[18] = xPos + 0.83D;
     this.y[18] = -0.06D;
     this.x[19] = xPos + 0.47D;
-    this.y[19] = -0.3D;
+    this.y[19] = 0.3D;
     this.z = zPos; 
     this.active = true;
     for (int i=0; i<this.nodes; i++) {
@@ -64,9 +64,10 @@ public class Heart extends FloatyObject {
     // paint method to render obstacle
     public void fill(Graphics g) {
 
-	Color heartColorLight = new Color(227, 20, 103);
+	Color heartColor = new Color(227, 20, 103);
     	Color heartColorDark = new Color(187, 20, 73);
-    	Color heartColor = new Color(235, 120, 150);
+    	Color heartColorDarker = new Color(110, 15, 45);
+    	Color heartColorLight = new Color(235, 120, 150);
     	if (this.collided) {
 	    heartColorLight = new Color(240, 150, 70);
 	    heartColorDark = new Color(140, 50, 5);
@@ -75,26 +76,36 @@ public class Heart extends FloatyObject {
     	Graphics2D g2d = (Graphics2D) g;
     	g2d.setColor(heartColorLight);
     	g2d.fillPolygon(this.polyX, this.polyY, 10);
-    	//connect(0, 0);
-    	//connect(1, 1);
-    	//connect(2, 7);
-    	//connect(3, 11);
-    	//connect(4, 13);
-    	//connect(5, 10);
-    	//g2d.setColor(heartColorDark);
-    	//g2d.fillPolygon(this.polyX1, this.polyY1, 6);
-    	//connect(0, 2);
-    	//connect(1, 3);
-    	//connect(2, 5);
-    	//connect(3, 6);
-    	//g2d.setColor(heartColor);
-    	//g2d.fillPolygon(this.polyX1, this.polyY1, 4);
-    	//connect(0, 10);
-    	//connect(1, 13);
-    	//connect(2, 12);
-    	//connect(3, 9);
-    	//g2d.setColor(heartColor);
-    	//g2d.fillPolygon(this.polyX1, this.polyY1, 4);
+    	connect(0, 10);
+    	connect(1, 11);
+    	connect(2, 12);
+    	connect(3, 13);
+    	connect(4, 14);
+    	connect(5, 15);
+    	connect(6, 16);
+    	connect(7, 17);
+    	connect(8, 18);
+    	connect(9, 19);
+    	g2d.setColor(heartColorDarker);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 10);
+    	connect(0, 0);
+    	connect(1, 1);
+    	connect(2, 2);
+    	connect(3, 3);
+    	connect(4, 4);
+    	connect(5, 14);
+    	connect(6, 13);
+    	connect(7, 12);
+    	connect(8, 11);
+    	connect(9, 10);
+    	g2d.setColor(heartColor);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 10);
+    	connect(0, 5);
+    	connect(1, 6);
+    	connect(2, 15);
+    	connect(3, 16);
+    	g2d.setColor(heartColor);
+    	g2d.fillPolygon(this.polyHelpX, this.polyHelpY, 4);
     }
   
 } // Heart class
