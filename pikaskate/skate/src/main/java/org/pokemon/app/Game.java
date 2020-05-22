@@ -11,6 +11,7 @@ import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 import javax.swing.JComponent;
+import java.awt.Dimension;
 
 public class Game extends JPanel implements Runnable{
     static int horizon = 26; // z distance of horizon from player
@@ -64,6 +65,7 @@ public class Game extends JPanel implements Runnable{
 	this.maxTilt = this.pi/6D; //allow world to tilt 30 degreed 
 	this.width = 480;
 	this.height = 300;
+	this.setPreferredSize(new Dimension(this.width, this.height));
 //	this.setBounds(0,0,this.width,this.height);
 	this.centerX = this.width / 2;
 	this.centerY = this.height / 2;

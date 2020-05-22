@@ -37,7 +37,8 @@ public class MainApp extends JFrame implements WindowListener {
     
     public MainApp () {
 	this.setTitle("Pikachu Skate Revived");
-	this.setSize(520, 500); //TODO use this.pack() instead
+	this.setSize(520, 410); //TODO use this.pack() instead
+	//this.pack();
       	this.setVisible(true);
       	this.addWindowListener(this);
 	// query computer screen size and place main window in middle of screen
