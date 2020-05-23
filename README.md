@@ -20,6 +20,8 @@ If you want to clone the project, you need the following software installed:
 All development and testing has been done on Ubuntu 18.04.
 
 At the moment compilation works with mvn:
+
     $ cd pikaskate
     $ mvn compile                                       #for simple (non-packaged) compilation
     $ java -cp target/classes/ org.pokemon.app.MainApp  #to run app
+    
