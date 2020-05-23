@@ -28,8 +28,10 @@ public class Game extends JPanel implements Runnable{
     static int maxObjects = 70; // how many obstacles are created
     int[] maxObstaclesLevel; // how many obstacles can exist per level
     int obstacleCounter;  // how many exist currently on scene
+    int[] obstacleCreationDelay; // how fast/slow new obstacles get created
     int[] maxHeartsLevel; // how many hearts can exist per level
     int heartCounter; // number of hearts in scene
+    int[] heartCreationDelay;
     double collisionRange; // z distance from player where collision can occur
     
     int imgCounter; // toggle player movement images with this counter
@@ -79,10 +81,12 @@ public class Game extends JPanel implements Runnable{
 	this.objects = new Freeobj(this.maxObjects); // create objects
 	this.startFlag = false;
 	this.isContinue = false;
-				// 8000
+				// 8000, 8200, 8400, 12000, 12200, 25000, 25200,25400, 40000, 9999999 };
 	this.clearScore = new int[] { 800, 8200, 8400, 12000, 12200, 25000, 25200,25400, 40000, 9999999 };
 	this.maxObstaclesLevel = new int[] {15, 20, 22, 25, 30, 35, 40, 45, 50, 60};
+	this.obstacleCreationDelay = new int[] {7, 6, 6, 5, 4, 3, 3, 2, 2, 1}; 
 	this.maxHeartsLevel = new int[] {5, 5, 4, 4, 3, 3, 2, 2, 1, 1};
+	this.heartCreationDelay = new int[] {3, 3, 4, 5, 6, 7, 8, 8, 9, 9};
 	this.rFlag = false;
 	this.lFlag = false;
 	this.isFocus = true;
@@ -386,7 +390,7 @@ public class Game extends JPanel implements Runnable{
     // returns true if player hit obstacle, false otherwise
     boolean moveObjects() {
 	boolean collision = false;
-	//System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
+	System.out.println("hearts: " + this.heartCounter + ", obs: " + this.obstacleCounter);
 	// for each obstacle, move in z and x (z negative towards screen)
 	FloatyObject floaty1 = this.objects.getHead();
 	while ((floaty1 != null)) {
@@ -423,7 +427,7 @@ public class Game extends JPanel implements Runnable{
 		    }
 		}
 	    }
-	    // oobject moves out of sight -> delete + update linked list
+	    // object moves out of sight -> delete + update linked list
 	    if (((floaty1.z <= 0.45D)
 		    || !floaty1.isInside(0,0,this.width, this.height))
 		    && floaty1.isActive()) {
@@ -436,17 +440,21 @@ public class Game extends JPanel implements Runnable{
 	    }
 	    floaty1 = floaty1.next;
 	}
-	// create new obstacles if not enough on scene
-	if ((this.rounds % objects.creationDelay == 0) 
-	    && (this.obstacleCounter <= this.maxObstaclesLevel[this.level])) {
+	// create new obstacle if not enough on scene
+	// level by level, obstacles created faster
+	if ((this.rounds % this.obstacleCreationDelay[this.level] == 0) 
+	    && (this.obstacleCounter < this.maxObstaclesLevel[this.level])) {
+	    //System.out.println("now obs: " + this.obstacleCounter +". Create new.");
 	    double d = Math.random() * 44.0D - 22.0D;
 	    if (objects.activateObject(d,horizon, "Obstacle")) {
 		this.obstacleCounter++; // add new obstacle to number of existing ones
 	    }
 	}
-	// create new hearts if not enough
-	if ((this.rounds % objects.creationDelay == 0) 
-	    && (this.heartCounter <= this.maxHeartsLevel[this.level])) {
+	// create new heart if not enough
+	// level by level, hesrts created more slowly
+	if ((this.rounds % this.heartCreationDelay[this.level] == 0) 
+	    && (this.heartCounter < this.maxHeartsLevel[this.level])) {
+	    //System.out.println("now hearts: " + this.heartCounter +". Create new.");
 	    double d = Math.random() * 44.0D - 22.0D;
 	    if (objects.activateObject(d,horizon, "Heart")) {
 		this.heartCounter++; // add new heart to total
@@ -514,7 +522,7 @@ public class Game extends JPanel implements Runnable{
 	    }
 	    this.player.savedScore = this.player.runningScore;
 	    this.gameMode = 4; // fallen slide mode
-	    for (int i = 1; i < 50; i++) { // TODO set back to ~50
+	    for (int i = 1; i < 50; i++) {
 		moveObjects();
 		this.player.setVelocity(this.rFlag, this.lFlag);
 		this.rounds++;

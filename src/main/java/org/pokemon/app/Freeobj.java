@@ -3,7 +3,6 @@ package org.pokemon.app;
 public class Freeobj {
     FloatyObject head;
     FloatyObject tail;
-    public int creationDelay = 4; // how many rounds before creating new object 
 
     public Freeobj(int numberObstacles) {
 	FloatyObject floaty1;

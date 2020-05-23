@@ -17,11 +17,12 @@ public class World {
     int goalPosY;
     int cloud1PosX; // where cloud1 image painted on game panel
     int cloud1PosY;
+    int cloud1Width;
     int cloud2PosX; // where cloud2 image painted on game panel
     int cloud2PosY;
+    int cloud2Width;
     double[] goalVelocity; // in world frame (background img rising from ground)
-    double[] cloud1Velocity; // in world frame clouds floating around
-    double[] cloud2Velocity; // in world frame clouds floating around
+    int cloudCounter; // used to determine speed of clouds
     double imageScaling;  // make sure goal image always same size
     int[] groundX; // define polygon representing ground X
     int[] groundY; // define polygon representing ground Y
@@ -39,8 +40,6 @@ public class World {
 	this.gameWidth = gameWidth;
 	this.gameHeight = gameHeight;
 	this.goalVelocity = new double[]{0,-1,0}; // only moving up
-	this.cloud1Velocity = new double[]{1,0,0}; // clods only move in x
-	this.cloud2Velocity = new double[]{-1,0,0}; // clods only move in x
 	// lower left & right corners (2,3) constant, upper ones (0,1) change
 	this.groundX = new int[4];
 	this.groundY = new int[4];
@@ -68,6 +67,8 @@ public class World {
 		System.out.println("error when loading images: " +e);
 	    }
 	}
+	this.cloud1Width = this.cloudImgs[0].getWidth(null);
+	this.cloud2Width = this.cloudImgs[1].getWidth(null);
 	try {
 	    this.goalImg = ImageIO.read(getClass().getClassLoader()
 	    	.getResource("img/mountain1.png" ));
@@ -80,7 +81,7 @@ public class World {
 	
 	this.goalPosX = 0;
 	this.goalPosY = this.gameHeight;
-	this.cloud1PosX = -100;
+	this.cloud1PosX = -this.cloud1Width;
 	this.cloud2PosX = this.gameWidth;
     }
 
@@ -89,13 +90,22 @@ public class World {
 	if (this.goalPosY < 20) {
 	    this.goalPosY = 20;
 	}
-	this.cloud1PosX += this.cloud1Velocity[0];
-	this.cloud2PosX += this.cloud2Velocity[0];
+	if (this.cloudCounter % 3 == 0) {
+	    this.cloud1PosX++;
+	    this.cloud2PosX--;
+	}
+	this.cloudCounter++;
+	if (this.cloud1PosX == this.gameWidth) {
+	    this.cloud1PosX = -this.cloud1Width;
+	}
+	if (this.cloud2PosX == -this.cloud2Width) {
+	    this.cloud2PosX = this.gameWidth;
+	}
 	g2d.setColor(this.skyColors[level]);//colour depends on level
 	g2d.fillRect(0, 0, this.gameWidth, this.gameHeight);
-	g2d.drawImage(this.goalImg, new AffineTransform(
-	    this.imageScaling,0,0,this.imageScaling,this.goalPosX,
-	    this.goalPosY),null);
+	//g2d.drawImage(this.goalImg, new AffineTransform(
+	//    this.imageScaling,0,0,this.imageScaling,this.goalPosX,
+	//    this.goalPosY),null);
 	g2d.drawImage(this.cloudImgs[0], new AffineTransform(
 	    this.imageScaling,0,0,this.imageScaling,this.cloud1PosX,
 	    0),null);
