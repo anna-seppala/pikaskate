@@ -166,6 +166,9 @@ public class Player {
 		this.imgTimeCounter = 0;
 		this.damaged++; // add 1 to damaged -> do not come back here
 	    }
+	    if (this.damaged > 0 && this.imgTimeCounter > 4 && this.health > 0) {
+		this.damaged = 0; // return to normal after delay unless game over
+	    }
 	    if (this.damaged > 0 && this.imgTimeCounter > 4) {
 		// draw image of fallen player
 		this.myImg0 = this.myImgs[13];

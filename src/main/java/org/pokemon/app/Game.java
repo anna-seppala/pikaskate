@@ -414,15 +414,19 @@ public class Game extends JPanel implements Runnable{
 			if (this.gameMode == 0) {
 			    floaty1.setCollided(collision);
 			    if (floaty1 instanceof Obstacle) {
-				collision = true;
+				//collision = true;
+				this.player.health--;
 				this.player.damaged++;
+				if (this.player.health == 0) {
+				    collision = true;
+				}
 			    } else if (floaty1 instanceof Heart) {
 				this.player.health++;
 				if (this.player.health > this.parent.healthMeter.maxHealth) {
 				    this.player.health = this.parent.healthMeter.maxHealth;
 				}
-				this.parent.healthMeter.setHealth(this.player.health);
 			    }
+			    this.parent.healthMeter.setHealth(this.player.health);
 			}
 		    }
 		}
@@ -510,16 +514,12 @@ public class Game extends JPanel implements Runnable{
 		demo();
 		repaint();
 	    }
-	} else { // actual game loop until collision happens 
+	} else { // actual game loop until final collision happens 
 	    while (!moveObjects() && (thisThread == this.gameThread)) {
 		prt();
 		repaint();
 	    }
-	    // breaking from while means collision took place: decrease health
-	    this.player.health--;
-	    if (this.player.health < 0) {
-		this.player.health = 0;
-	    }
+	    // breaking from while means final collision took place
 	    this.player.savedScore = this.player.runningScore;
 	    this.gameMode = 4; // fallen slide mode
 	    for (int i = 1; i < 50; i++) {
